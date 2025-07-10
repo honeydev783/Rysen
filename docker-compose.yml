@@ -1,0 +1,15 @@
+services:
+  backend:
+    build: ./backend
+    container_name: rysen-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - backend/.env  
+  frontend:
+    build:
+      context: ./rysen-app
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    container_name: rysen-frontend
