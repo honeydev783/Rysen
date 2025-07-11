@@ -7,7 +7,7 @@ export default function DonationSuccessPage() {
   useEffect(() => {
     // Optionally delay redirect or show follow-up logic
     const timer = setTimeout(() => {
-      navigate("/chat"); // or home/dashboard route
+      navigate("/welcome"); // or home/dashboard route
     }, 5000);
 
     return () => clearTimeout(timer);

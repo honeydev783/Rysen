@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import OnboardingPage from "./pages/Onbarding";
 import SigninPage from "./pages/SigninPage";
@@ -13,11 +8,10 @@ import DonationSuccessPage from "./pages/DonationSuccessPage"; // create this pa
 import ChatPage from "./pages/ChatPage";
 import SettingsPage from "./pages/Settings";
 import { Toaster } from "react-hot-toast";
-import WelcomePage from "./pages/WelcomePage";
-import { useNavigate } from "react-router-dom";
+// import { Settings } from "lucide-react";
 
 interface User {
-  uid: string;
+  uid : string;
   name: string;
   email: string;
   login_count: string;
@@ -29,7 +23,7 @@ function App() {
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [showDonation, setShowDonation] = useState(false);
   const [email, setEmail] = useState("");
-  // const navigate = useNavigate();
+
   // PWA install prompt handling
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
@@ -40,67 +34,67 @@ function App() {
     localStorage.removeItem("greeted");
     setEmail(userData.email);
     setHasOnboarded(userData.onboarded);
-    // so greeting shows again on login
+     // so greeting shows again on login
   };
 
   const handleFinishOnboarding = () => {
     setHasOnboarded(true);
   };
-//Detect PWA and show install prompt or guide
-  useEffect(() => {
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+// Detect PWA and show install prompt or guide
+  // useEffect(() => {
+  //   const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
-    if (isStandalone) return; // already installed
+  //   if (isStandalone) return; // already installed
 
-    const pwaPromptShown = localStorage.getItem("pwaPromptShown");
+  //   const pwaPromptShown = localStorage.getItem("pwaPromptShown");
 
-    // Android: listen for beforeinstallprompt
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+  //   // Android: listen for beforeinstallprompt
+  //   const handleBeforeInstallPrompt = (e: any) => {
+  //     e.preventDefault();
+  //     setDeferredPrompt(e);
 
-      if (!pwaPromptShown) {
-        setShowInstallPrompt(true);
-        localStorage.setItem("pwaPromptShown", "true");
-      }
-    };
+  //     if (!pwaPromptShown) {
+  //       setShowInstallPrompt(true);
+  //       localStorage.setItem("pwaPromptShown", "true");
+  //     }
+  //   };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  //   window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
-    // iOS: show guide if Safari on iOS and not standalone
-    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isInSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  //   // iOS: show guide if Safari on iOS and not standalone
+  //   const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  //   const isInSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    if (isIos && isInSafari && !isStandalone && !pwaPromptShown) {
-      setShowiOSGuide(true);
-      localStorage.setItem("pwaPromptShown", "true");
-    }
+  //   if (isIos && isInSafari && !isStandalone && !pwaPromptShown) {
+  //     setShowiOSGuide(true);
+  //     localStorage.setItem("pwaPromptShown", "true");
+  //   }
 
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+  //   };
+  // }, []);
 
-   const installPWA = () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult: any) => {
-        if (choiceResult.outcome === "accepted") {
-          console.log("PWA installed");
-        } else {
-          console.log("PWA dismissed");
-        }
-        setDeferredPrompt(null);
-      });
-    }
-    setShowInstallPrompt(false);
-  };
+  //  const installPWA = () => {
+  //   if (deferredPrompt) {
+  //     deferredPrompt.prompt();
+  //     deferredPrompt.userChoice.then((choiceResult: any) => {
+  //       if (choiceResult.outcome === "accepted") {
+  //         console.log("PWA installed");
+  //       } else {
+  //         console.log("PWA dismissed");
+  //       }
+  //       setDeferredPrompt(null);
+  //     });
+  //   }
+  //   setShowInstallPrompt(false);
+  // };
   return (
     <ThemeProvider>
       <Toaster position="top-center" reverseOrder={false} />
       <Router>
         {/* PWA Android Banner */}
-        {showInstallPrompt && (
+        {/* {showInstallPrompt && (
           <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 shadow-xl border border-gray-300 dark:border-gray-700 p-4 rounded-xl z-50 flex flex-col md:flex-row items-center justify-between">
             <p className="text-sm mb-2 md:mb-0 text-center md:text-left text-gray-800 dark:text-white">
               Install Rysen for a better experience.
@@ -123,10 +117,10 @@ function App() {
               </button>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* PWA iOS Guide */}
-        {showiOSGuide && (
+        {/* {showiOSGuide && (
           <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 shadow-xl border border-gray-300 dark:border-gray-700 p-4 rounded-xl z-50">
             <p className="text-sm text-gray-800 dark:text-white mb-2">
               Install Rysen by tapping <strong>Share icon</strong> then <strong>"Add to Home Screen"</strong> on Safari Browser.
@@ -143,14 +137,16 @@ function App() {
               </button>
             </div>
           </div>
-        )}
+        )} */}
         {/* Donation Modal */}
-        {showDonation && <DonationModal onClose={()=> setShowDonation(false)} />}
-        <Routes>
-          <Route
-            path="/signin"
-            element={<SigninPage onLogin={handleLogin} />}
+        {showDonation && (
+          <DonationModal
+            onClose={() => setShowDonation(false)}
+            handleFinishOnboarding = {()=> handleFinishOnboarding()}  
           />
+        )}
+        <Routes>
+          <Route path="/signin" element={<SigninPage onLogin={handleLogin} />} />
           <Route
             path="/onboarding"
             element={
@@ -165,13 +161,12 @@ function App() {
             }
           />
           <Route path="/donate-success" element={<DonationSuccessPage />} />
-          <Route path="/welcome" element={<WelcomePage />} />
           <Route
             path="/"
             element={
               user ? (
                 hasOnboarded ? (
-                  <Navigate to="/welcome" replace />
+                  <Navigate to="/chat" replace />
                 ) : (
                   <Navigate to="/onboarding" replace />
                 )
@@ -180,16 +175,8 @@ function App() {
               )
             }
           />
-          <Route
-            path="/chat"
-            element={<ChatPage showDonation={() => setShowDonation(true)} />}
-          />
-          <Route
-            path="/settings"
-            element={
-              <SettingsPage showDonation={() => setShowDonation(true)} />
-            }
-          />
+          <Route path="/chat" element={<ChatPage showDonation={()=>setShowDonation(true)} />} />
+          <Route path="/settings" element={<SettingsPage showDonation={()=>setShowDonation(true)} />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>

@@ -10,7 +10,7 @@ import { doc, getDoc, setDoc, updateDoc, increment } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBjqcxYjEQ_GKgk7e5btBQ9BuofrfOhmjI",
-  authDomain: "rysen.app",
+  authDomain: "rysenapp.firebaseapp.com",
   projectId: "rysenapp",
   storageBucket: "rysenapp.firebasestorage.app",
   messagingSenderId: "725651131931",

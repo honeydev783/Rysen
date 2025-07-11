@@ -30,15 +30,14 @@
 // }
 import { useState } from "react";
 import axios from "axios";
-import api from '../utils/api';
-import {useNavigate} from "react-router-dom";
+import api from "../utils/api";
+import { useNavigate } from "react-router-dom";
 interface DonationModalProps {
   // email: string; // user email from auth context
   onClose: () => void;
-  handleFinishOnboarding: () => void;
 }
 
-export default function DonationModal({  onClose, handleFinishOnboarding }: DonationModalProps) {
+export default function DonationModal({onClose}: DonationModalProps) {
   const navigate = useNavigate();
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>("");
@@ -47,9 +46,10 @@ export default function DonationModal({  onClose, handleFinishOnboarding }: Dona
 
   const predefined = [10, 20, 50, 100, 250];
   const onSkip = () => {
+    console.log("User skipped donation prompt");
     onClose();
-    handleFinishOnboarding();
-  }
+    navigate("/welcome");
+  };
   const handleDonate = async () => {
     const finalAmount = amount ?? parseFloat(customAmount);
     if (!finalAmount || finalAmount < 1) return;
@@ -60,7 +60,7 @@ export default function DonationModal({  onClose, handleFinishOnboarding }: Dona
         amount: Math.round(finalAmount * 100), // convert to cents
         recurring: isRecurring,
         success_url: "http://localhost:3000/donate-success",
-        cancel_url: "http://localhost:3000/chat"
+        cancel_url: "http://localhost:3000/chat",
       });
       console.log("donation response==>", res.data.url);
       window.location.href = res.data.url;

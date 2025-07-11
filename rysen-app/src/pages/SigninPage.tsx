@@ -1,103 +1,3 @@
-// import { useState } from "react";
-// import { FaGoogle, FaFacebook } from "react-icons/fa";
-// import { useTheme } from "../context/ThemeContext";
-
-// interface User {
-//   email: string;
-//   // Add other user properties as needed
-// }
-
-// interface SigninPageProps {
-//   onLogin: (user: User) => void;
-// }
-
-// const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
-//   const { theme, toggleTheme } = useTheme();
-//   const [isSignup, setIsSignup] = useState(false);
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-
-//   const handleLogin = () => {
-//     // Replace with Firebase Auth later
-//     onLogin({ email });
-//   };
-
-//   return (
-//     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-100 dark:bg-gray-900 transition-colors">
-//       <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
-//         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">
-//           {isSignup ? "Create an Account" : "Welcome to Rysen"}
-//         </h1>
-
-//         <div className="flex gap-3 mb-4 justify-center">
-//           <button
-//             className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
-//             onClick={handleLogin}
-//           >
-//             <FaGoogle />
-//             Google
-//           </button>
-//           <button
-//             className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-//             onClick={handleLogin}
-//           >
-//             <FaFacebook />
-//             Facebook
-//           </button>
-//         </div>
-
-//         <div className="relative text-center text-gray-400 dark:text-gray-300 my-4">
-//           <span className="bg-white dark:bg-gray-800 px-2 z-10 relative">
-//             or continue with email
-//           </span>
-//           <div className="absolute left-0 top-1/2 w-full border-t border-gray-300 dark:border-gray-600 z-0"></div>
-//         </div>
-
-//         <input
-//           type="email"
-//           placeholder="Email"
-//           className="w-full px-4 py-2 mb-3 rounded border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-//           value={email}
-//           onChange={(e) => setEmail(e.target.value)}
-//         />
-//         <input
-//           type="password"
-//           placeholder="Password"
-//           className="w-full px-4 py-2 mb-4 rounded border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-//           value={password}
-//           onChange={(e) => setPassword(e.target.value)}
-//         />
-//         <button
-//           className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded transition"
-//           onClick={handleLogin}
-//         >
-//           {isSignup ? "Sign Up" : "Sign In"}
-//         </button>
-
-//         <p className="text-center mt-4 text-sm text-gray-600 dark:text-gray-300">
-//           {isSignup ? "Already have an account?" : "Don't have an account?"}
-//           <button
-//             className="ml-1 text-indigo-600 hover:underline dark:text-indigo-400"
-//             onClick={() => setIsSignup(!isSignup)}
-//           >
-//             {isSignup ? "Sign in" : "Sign up"}
-//           </button>
-//         </p>
-
-//         <div className="text-center mt-6">
-//           <button
-//             onClick={toggleTheme}
-//             className="text-sm text-gray-600 dark:text-gray-300 hover:underline"
-//           >
-//             Toggle to {theme === "light" ? "Dark" : "Light"} Mode
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default SigninPage;
 import { useState } from "react";
 import { FaGoogle, FaFacebook } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
@@ -146,7 +46,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
       toast.success(isSignup ? "Signup successful!" : "Login successful!");
       onLogin({ name: userData.name, login_count: userData.login_count, email: userData.email, onboarded: userData.onboarded, uid: userData.uid });
       if(userData.onboarded) {
-        navigate("/chat");
+        navigate("/welcome");
       } else {
         navigate("/onboarding");
       }

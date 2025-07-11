@@ -56,7 +56,7 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
     age_range: "",
     sex: "",
     life_stage: "",
-    spiritual_maturity: 1,
+    spiritual_maturity: 1.0,
     spiritual_goals: [] as string[],
     avatar: "",
     notificationsEnabled: false,
@@ -260,11 +260,12 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
             type="range"
             min="1"
             max="3"
+            step="0.01"
             value={formData.spiritual_maturity}
             onChange={(e) =>
               setFormData({
                 ...formData,
-                spiritual_maturity: parseInt(e.target.value),
+                spiritual_maturity: parseFloat(e.target.value),
               })
             }
             className="w-full"

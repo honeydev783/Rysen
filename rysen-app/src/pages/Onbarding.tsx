@@ -58,7 +58,7 @@ export default function OnboardingPage({ onFinish, showDonationPrompt }: Onboard
     ageRange: "",
     sex: "",
     lifeStage: "",
-    spiritualMaturity: 1,
+    spiritualMaturity: 1.0,
     spiritualGoals: [],
     avatar: "",
   });
@@ -67,7 +67,7 @@ export default function OnboardingPage({ onFinish, showDonationPrompt }: Onboard
     try {
       const auth = getAuth();
       const token = await auth.currentUser?.getIdToken();
-
+      console.log("formData===>", formData);
       await api.post(
         `/onboarding`,
         formData,
@@ -170,11 +170,12 @@ export default function OnboardingPage({ onFinish, showDonationPrompt }: Onboard
               type="range"
               min="1"
               max="3"
+              step="0.01"
               value={formData.spiritualMaturity}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  spiritualMaturity: parseInt(e.target.value),
+                  spiritualMaturity: parseFloat(e.target.value),
                 })
               }
               className="w-full"

@@ -47,14 +47,14 @@ class TokenRequest(BaseModel):
     id_token: str
 
 
-class OnboardingData(BaseModel):
-    name: str
-    age_range: str
-    sex: Optional[str] = None
-    life_stage: Optional[str] = None
-    spiritual_maturity: Optional[str] = None
-    spiritual_goals: List[str] = []
-    avatar: Optional[str] = None
+# class OnboardingData(BaseModel):
+#     name: str
+#     age_range: str
+#     sex: Optional[str] = None
+#     life_stage: Optional[str] = None
+#     spiritual_maturity: float
+#     spiritual_goals: List[str] = []
+#     avatar: Optional[str] = None
 
 
 class AuthRequest(BaseModel):
@@ -66,7 +66,7 @@ class OnboardingData(BaseModel):
     ageRange: str
     sex: str
     lifeStage: str
-    spiritualMaturity: int  # 1–3
+    spiritualMaturity: float  # 1–3
     spiritualGoals: List[str]
     avatar: str  # key from avatarOptions
     
