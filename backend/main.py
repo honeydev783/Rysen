@@ -151,7 +151,7 @@ async def signin(data: TokenRequest):
                 "uid": uid,
                 "name": name,
                 "email": email,
-                "login_count": login_count,
+                "login_count": 1,
                 "onboarded": user_data.get("onboarded", False),
             }
 
@@ -170,6 +170,7 @@ async def signin(data: TokenRequest):
         }
 
     except Exception as e:
+        print("auth error", str(e))
         raise HTTPException(status_code=401, detail=f"Invalid token or error: {e}")
 
 @app.post("/onboarding")

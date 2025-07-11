@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import OnboardingPage from "./pages/Onbarding";
@@ -24,6 +24,10 @@ function App() {
   const [showDonation, setShowDonation] = useState(false);
   const [email, setEmail] = useState("");
 
+  // PWA install prompt handling
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+  const [showiOSGuide, setShowiOSGuide] = useState(false);
   const handleLogin = (userData: User) => {
     setUser(userData);
     localStorage.setItem("login_count", userData.login_count);
@@ -36,14 +40,109 @@ function App() {
   const handleFinishOnboarding = () => {
     setHasOnboarded(true);
   };
+// Detect PWA and show install prompt or guide
+  useEffect(() => {
+    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 
+    if (isStandalone) return; // already installed
+
+    const pwaPromptShown = localStorage.getItem("pwaPromptShown");
+
+    // Android: listen for beforeinstallprompt
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+
+      if (!pwaPromptShown) {
+        setShowInstallPrompt(true);
+        localStorage.setItem("pwaPromptShown", "true");
+      }
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    // iOS: show guide if Safari on iOS and not standalone
+    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isInSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    if (isIos && isInSafari && !isStandalone && !pwaPromptShown) {
+      setShowiOSGuide(true);
+      localStorage.setItem("pwaPromptShown", "true");
+    }
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+   const installPWA = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === "accepted") {
+          console.log("PWA installed");
+        } else {
+          console.log("PWA dismissed");
+        }
+        setDeferredPrompt(null);
+      });
+    }
+    setShowInstallPrompt(false);
+  };
   return (
     <ThemeProvider>
       <Toaster position="top-center" reverseOrder={false} />
       <Router>
+        {/* PWA Android Banner */}
+        {showInstallPrompt && (
+          <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 shadow-xl border border-gray-300 dark:border-gray-700 p-4 rounded-xl z-50 flex flex-col md:flex-row items-center justify-between">
+            <p className="text-sm mb-2 md:mb-0 text-center md:text-left text-gray-800 dark:text-white">
+              Install Rysen for a better experience.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={installPWA}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+              >
+                Install
+              </button>
+              <button
+                onClick={() => {
+                  setShowInstallPrompt(false);
+                  localStorage.removeItem("pwaPromptShown");
+                }}
+                className="text-sm text-gray-600 dark:text-gray-300 hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* PWA iOS Guide */}
+        {showiOSGuide && (
+          <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 shadow-xl border border-gray-300 dark:border-gray-700 p-4 rounded-xl z-50">
+            <p className="text-sm text-gray-800 dark:text-white mb-2">
+              Install Rysen by tapping <strong>Share</strong> then <strong>"Add to Home Screen"</strong>.
+            </p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setShowiOSGuide(false);
+                  localStorage.removeItem("pwaPromptShown");
+                }}
+                className="text-sm text-gray-600 dark:text-gray-300 hover:underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
+        {/* Donation Modal */}
         {showDonation && (
           <DonationModal
             onClose={() => setShowDonation(false)}
+            handleFinishOnboarding = {()=> handleFinishOnboarding()}  
           />
         )}
         <Routes>
@@ -67,9 +166,7 @@ function App() {
             element={
               user ? (
                 hasOnboarded ? (
-                  <div className="flex items-center justify-center h-screen bg-white dark:bg-black text-black dark:text-white">
-                    <h1 className="text-2xl font-semibold">Welcome to Rysen!</h1>
-                  </div>
+                  <Navigate to="/chat" replace />
                 ) : (
                   <Navigate to="/onboarding" replace />
                 )

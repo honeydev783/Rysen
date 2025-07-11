@@ -31,19 +31,25 @@
 import { useState } from "react";
 import axios from "axios";
 import api from '../utils/api';
+import {useNavigate} from "react-router-dom";
 interface DonationModalProps {
   // email: string; // user email from auth context
   onClose: () => void;
+  handleFinishOnboarding: () => void;
 }
 
-export default function DonationModal({  onClose }: DonationModalProps) {
+export default function DonationModal({  onClose, handleFinishOnboarding }: DonationModalProps) {
+  const navigate = useNavigate();
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isRecurring, setIsRecurring] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const predefined = [10, 20, 50, 100, 250];
-
+  const onSkip = () => {
+    onClose();
+    handleFinishOnboarding();
+  }
   const handleDonate = async () => {
     const finalAmount = amount ?? parseFloat(customAmount);
     if (!finalAmount || finalAmount < 1) return;
@@ -53,8 +59,8 @@ export default function DonationModal({  onClose }: DonationModalProps) {
       const res = await api.post("/donate", {
         amount: Math.round(finalAmount * 100), // convert to cents
         recurring: isRecurring,
-        success_url: "https://rysen.app/donate-success",
-        cancel_url: "http://rysen.app/donate-success"
+        success_url: "http://localhost:3000/donate-success",
+        cancel_url: "http://localhost:3000/chat"
       });
       console.log("donation response==>", res.data.url);
       window.location.href = res.data.url;
@@ -111,7 +117,7 @@ export default function DonationModal({  onClose }: DonationModalProps) {
 
         <div className="flex justify-between">
           <button
-            onClick={onClose}
+            onClick={onSkip}
             className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded"
           >
             Skip

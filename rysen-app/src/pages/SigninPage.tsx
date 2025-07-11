@@ -143,6 +143,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
       });
       console.log("response==>", response.data);
       const userData = response.data;
+      toast.success(isSignup ? "Signup successful!" : "Login successful!");
       onLogin({ name: userData.name, login_count: userData.login_count, email: userData.email, onboarded: userData.onboarded, uid: userData.uid });
       if(userData.onboarded) {
         navigate("/chat");
@@ -162,7 +163,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
         : await signInWithEmailAndPassword(auth, email, password);
       console.log("userCredential====>", userCredential);
       await handleAuth(userCredential.user);
-      toast.success(isSignup ? "Signup successful!" : "Login successful!");
+      
     } catch (error) {
       console.error("Firebase email auth error:", error);
       if (error.code === "auth/email-already-in-use") {
@@ -218,14 +219,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
             onClick={handleGoogle}
           >
             <FaGoogle />
-            Google
-          </button>
-          <button
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-            onClick={handleFacebook}
-          >
-            <FaFacebook />
-            Facebook
+            Create Account Using Gmail
           </button>
         </div>
 

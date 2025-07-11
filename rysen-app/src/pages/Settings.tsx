@@ -68,6 +68,7 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
     const fetchUserSettings = async () => {
       const auth = getAuth();
       const user = auth.currentUser;
+      console.log("user===>", user);
       if (!user) return;
 
       const docRef = doc(db, "users", user.uid);
