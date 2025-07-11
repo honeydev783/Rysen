@@ -8,7 +8,7 @@ import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from 'firebase/auth
 
 const firebaseConfig = {
   apiKey: "AIzaSyBjqcxYjEQ_GKgk7e5btBQ9BuofrfOhmjI",
-  authDomain: "rysenapp.firebaseapp.com",
+  authDomain: "rysen.app",
   projectId: "rysenapp",
   storageBucket: "rysenapp.firebasestorage.app",
   messagingSenderId: "725651131931",
