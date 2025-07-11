@@ -46,16 +46,19 @@ function App() {
   const handleFinishOnboarding = () => {
     setHasOnboarded(true);
   };
-//Detect PWA and show install prompt or guide
+  // Detect PWA and show install prompt or guide
   useEffect(() => {
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
-
+    const isStandalone =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      window.navigator.standalone;
+    console.log("isStandalone===>", isStandalone);
     if (isStandalone) return; // already installed
 
     const pwaPromptShown = localStorage.getItem("pwaPromptShown");
 
     // Android: listen for beforeinstallprompt
     const handleBeforeInstallPrompt = (e: any) => {
+      console.log("isStandalone===>handleBeforeInstallPrompt", isStandalone);
       e.preventDefault();
       setDeferredPrompt(e);
 
@@ -68,8 +71,12 @@ function App() {
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     // iOS: show guide if Safari on iOS and not standalone
-    const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-    const isInSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isIos = /iphone|ipad|ipod/.test(
+      window.navigator.userAgent.toLowerCase()
+    );
+    const isInSafari = /^((?!chrome|android).)*safari/i.test(
+      navigator.userAgent
+    );
 
     if (isIos && isInSafari && !isStandalone && !pwaPromptShown) {
       setShowiOSGuide(true);
@@ -77,11 +84,14 @@ function App() {
     }
 
     return () => {
-      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt
+      );
     };
   }, []);
 
-   const installPWA = () => {
+  const installPWA = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult: any) => {
@@ -129,7 +139,8 @@ function App() {
         {showiOSGuide && (
           <div className="fixed bottom-4 left-4 right-4 bg-white dark:bg-gray-800 shadow-xl border border-gray-300 dark:border-gray-700 p-4 rounded-xl z-50">
             <p className="text-sm text-gray-800 dark:text-white mb-2">
-              Install Rysen by tapping <strong>Share icon</strong> then <strong>"Add to Home Screen"</strong> on Safari Browser.
+              Install Rysen by tapping <strong>Share</strong> then{" "}
+              <strong>"Add to Home Screen"</strong>.
             </p>
             <div className="flex justify-end">
               <button
@@ -145,7 +156,9 @@ function App() {
           </div>
         )}
         {/* Donation Modal */}
-        {showDonation && <DonationModal onClose={()=> setShowDonation(false)} />}
+        {showDonation && (
+          <DonationModal onClose={() => setShowDonation(false)} />
+        )}
         <Routes>
           <Route
             path="/signin"

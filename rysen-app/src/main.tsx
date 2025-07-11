@@ -13,8 +13,6 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-// import { registerSW } from 'virtual:pwa-register'
-
 // registerSW()
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
