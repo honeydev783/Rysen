@@ -14,6 +14,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import  api  from "../utils/api";
+import { ClipLoader } from "react-spinners"; 
 interface User {
   uid : string;
   name: string;
@@ -33,8 +34,10 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleAuth = async (firebaseUser: any) => {
+    setLoading(true);
     const idToken = await firebaseUser.getIdToken();
     console.log("idToken===>", idToken);
     try {
@@ -47,8 +50,10 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
       toast.success(isSignup ? "Signup successful!" : "Login successful!");
       onLogin({ name: userData.name, login_count: userData.login_count, email: userData.email, onboarded: userData.onboarded, uid: userData.uid });
       if(userData.onboarded) {
+        setLoading(false);
         navigate("/welcome");
       } else {
+        setLoading(false);
         navigate("/onboarding");
       }
       
@@ -98,7 +103,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
   const handleFacebook = async () => {
     const provider = new FacebookAuthProvider();
     try {
-      const result = await signInWithRedirect(auth, provider);
+      const result = await signInWithPopup(auth, provider);
       setIsSignup(false);
       await handleAuth(result.user);
     } catch (error) {
@@ -120,7 +125,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
             onClick={handleGoogle}
           >
             <FaGoogle />
-            Create Account Using Gmail
+            Login Using Gmail
           </button>
         </div>
 
@@ -170,6 +175,11 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
             Toggle to {theme === "light" ? "Dark" : "Light"} Mode
           </button>
         </div>
+        {loading && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+          <ClipLoader color="#fff" size={48} />
+        </div>
+      )}
       </div>
     </div>
   );
