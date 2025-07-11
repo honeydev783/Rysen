@@ -19,6 +19,7 @@ export default defineConfig({
       manifest: {
         name: 'Rysen',
         short_name: 'Rysen',
+        display: "standalone",
         description: 'Catholic Spiritual Companion',
         theme_color: '#ffffff',
         icons: [
