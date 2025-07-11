@@ -7,6 +7,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import axios from "axios";
@@ -97,7 +98,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
   const handleFacebook = async () => {
     const provider = new FacebookAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithRedirect(auth, provider);
       setIsSignup(false);
       await handleAuth(result.user);
     } catch (error) {
