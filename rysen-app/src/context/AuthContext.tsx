@@ -1,116 +1,101 @@
-// // import { createContext, useContext, useEffect, useState } from "react";
-// // import { getAuth, onAuthStateChanged, User } from "firebase/auth";
-// // import { firebaseApp } from "../lib/firebase";
+// context/AuthContext.tsx
+import React, { createContext, useEffect, useState, useContext } from "react";
+import { onAuthStateChanged, getIdToken } from "firebase/auth";
+import { auth } from "../firebase"; // Your Firebase config
+import api from "../utils/api";
+import { setPersistence, browserLocalPersistence } from "firebase/auth";
 
-// // const AuthContext = createContext<User | null>(null);
-
-// // export const useAuth = () => useContext(AuthContext);
-
-// // export function AuthProvider({ children }: { children: React.ReactNode }) {
-// //   const [user, setUser] = useState<User | null>(null);
-
-// //   useEffect(() => {
-// //     const auth = getAuth(firebaseApp);
-// //     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-// //       setUser(firebaseUser);
-// //     });
-// //     return () => unsubscribe();
-// //   }, []);
-
-// //   return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>;
-// // }
-
-// // // ✅ Add this line to make the file a module
-// // export {};
-// import { createContext, useContext, useEffect, useState } from "react";
-// import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signOut } from "firebase/auth";
-// import { initializeApp } from "firebase/app";
-// // import { firebaseConfig } from "../firebase";
-// const firebaseConfig = {
-//   apiKey: "AIzaSyBjqcxYjEQ_GKgk7e5btBQ9BuofrfOhmjI",
-//   authDomain: "rysenapp.firebaseapp.com",
-//   projectId: "rysenapp",
-//   storageBucket: "rysenapp.firebasestorage.app",
-//   messagingSenderId: "725651131931",
-//   appId: "1:725651131931:web:e70de44cbcf6a357d8f2be",
-//   measurementId: "G-K9H0M4BBW3"
-// };
-// initializeApp(firebaseConfig);
-// const auth = getAuth();
-
-// const AuthContext = createContext<any>(null);
-
-// export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-//   const [user, setUser] = useState<any>(null);
-
-//   useEffect(() => {
-//     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-//       setUser(firebaseUser);
-//     });
-//     return () => unsubscribe();
-//   }, []);
-
-//   const signInWithGoogle = async () => {
-//     const provider = new GoogleAuthProvider();
-//     await signInWithPopup(auth, provider);
-//   };
-
-//   const signInWithFacebook = async () => {
-//     const provider = new FacebookAuthProvider();
-//     await signInWithPopup(auth, provider);
-//   };
-
-//   const logout = async () => {
-//     await signOut(auth);
-//   };
-
-//   return (
-//     <AuthContext.Provider value={{ user, signInWithGoogle, signInWithFacebook, logout }}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// };
-
-// export const useAuth = () => useContext(AuthContext);
-import React, { createContext, useEffect, useState, ReactNode } from "react";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import type { User } from "firebase/auth";
-import { app } from "../firebase"; // Your Firebase config/init file
-
+interface User {
+  uid: string;
+  name: string;
+  login_count: string;
+  onboarded: boolean;
+  email: string;
+}
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
+  token: string | null;
+  onboardingComplete: boolean;
+  loginCount: number;
+  setUser: (user: User) => void;
   logout: () => void;
+  loading: boolean; //
 }
 
-export const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  logout: () => {},
-});
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  const auth = getAuth(app);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [auth]);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<any>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [loginCount, setLoginCount] = useState(0);
+  const [loading, setLoading] = useState(true); // 👈 add this
 
   const logout = async () => {
-    await signOut(auth);
+    await auth.signOut(); // Firebase logout
     setUser(null);
+    setToken(null);
+    setOnboardingComplete(false);
+    setLoginCount(0);
+    localStorage.removeItem("authToken");
   };
+  useEffect(() => {
+    setPersistence(auth, browserLocalPersistence)
+      .then(() => {
+        onAuthStateChanged(auth, async (firebaseUser) => {
+          if (firebaseUser) {
+            const idToken = await getIdToken(firebaseUser);
+            const endpoint = "/auth/signin";
+            const response = await api.post(`${endpoint}`, {
+              id_token: idToken,
+            });
+            console.log("context response==>", response.data);
+            const userData = response.data;
+            setUser({
+              name: userData.name,
+              login_count: userData.login_count,
+              email: userData.email,
+              onboarded: userData.onboarded,
+              uid: userData.uid,
+            });
+            setToken(idToken);
+
+            // // 🔁 Get user info from your backend
+            // const res = await axios.get("/api/user", {
+            //   headers: { Authorization: `Bearer ${idToken}` },
+            // });
+
+            setOnboardingComplete(userData.onboarded);
+            setLoginCount(userData.login_count);
+          } else {
+            setUser(null);
+            setToken(null);
+            setOnboardingComplete(false);
+            setLoginCount(0);
+          }
+          setLoading(false); // ✅ done initializing
+        });
+      })
+      .catch((err) => {
+        console.error("Firebase persistence error:", err);
+      });
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        onboardingComplete,
+        loginCount,
+        setUser,
+        logout,
+        loading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext)!;
