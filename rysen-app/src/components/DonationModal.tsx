@@ -75,7 +75,7 @@ export default function DonationModal({onClose}: DonationModalProps) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-md shadow-xl">
         <h2 className="text-xl font-semibold text-center mb-4">
-          Would you consider supporting this mission?
+          Enjoying Rysen ? Consider donating to support the mission.
         </h2>
 
         <div className="flex flex-wrap gap-2 justify-center mb-4">

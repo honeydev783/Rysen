@@ -13,10 +13,10 @@ import { auth } from "../firebase";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import  api  from "../utils/api";
-import { ClipLoader } from "react-spinners"; 
+import api from "../utils/api";
+import { ClipLoader } from "react-spinners";
 interface User {
-  uid : string;
+  uid: string;
   name: string;
   login_count: string;
   onboarded: boolean;
@@ -35,9 +35,8 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
+  const [googleLoading, setGoogleLoading] = useState(false);
   const handleAuth = async (firebaseUser: any) => {
-    setLoading(true);
     const idToken = await firebaseUser.getIdToken();
     console.log("idToken===>", idToken);
     try {
@@ -48,15 +47,23 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
       console.log("response==>", response.data);
       const userData = response.data;
       toast.success(isSignup ? "Signup successful!" : "Login successful!");
-      onLogin({ name: userData.name, login_count: userData.login_count, email: userData.email, onboarded: userData.onboarded, uid: userData.uid });
-      if(userData.onboarded) {
+      onLogin({
+        name: userData.name,
+        login_count: userData.login_count,
+        email: userData.email,
+        onboarded: userData.onboarded,
+        uid: userData.uid,
+      });
+      
+      if (userData.onboarded) {
+        setGoogleLoading(false);
         setLoading(false);
         navigate("/welcome");
       } else {
+        setGoogleLoading(false);
         setLoading(false);
         navigate("/onboarding");
       }
-      
     } catch (err) {
       console.error("Error calling FastAPI backend:", err);
     }
@@ -64,12 +71,12 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
 
   const handleEmailAuth = async () => {
     try {
+      setLoading(true);
       const userCredential = isSignup
         ? await createUserWithEmailAndPassword(auth, email, password)
         : await signInWithEmailAndPassword(auth, email, password);
       console.log("userCredential====>", userCredential);
       await handleAuth(userCredential.user);
-      
     } catch (error) {
       console.error("Firebase email auth error:", error);
       if (error.code === "auth/email-already-in-use") {
@@ -91,6 +98,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
   const handleGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      setGoogleLoading(true);
       const result = await signInWithPopup(auth, provider);
       setIsSignup(false);
       await handleAuth(result.user);
@@ -98,6 +106,7 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
       console.error("Google login error:", error);
       toast.error("Authentication failed. Please try again.");
     }
+
   };
 
   const handleFacebook = async () => {
@@ -111,8 +120,13 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
       console.error("Facebook login error:", error);
     }
   };
-
-  return (
+  if (googleLoading) {
+    return(
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-100  transition-colors">
+    </div>
+    )
+  } else {
+return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gray-100 dark:bg-gray-900 transition-colors">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-6">
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800 dark:text-white">
@@ -176,13 +190,15 @@ const SigninPage: React.FC<SigninPageProps> = ({ onLogin }) => {
           </button>
         </div>
         {loading && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
-          <ClipLoader color="#fff" size={48} />
-        </div>
-      )}
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+            <ClipLoader color="#fff" size={48} />
+          </div>
+        )}
+        
       </div>
     </div>
   );
+  }
+  
 };
-
 export default SigninPage;

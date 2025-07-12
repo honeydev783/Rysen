@@ -14,7 +14,14 @@ import ChatPage from "./pages/ChatPage";
 import SettingsPage from "./pages/Settings";
 import { Toaster } from "react-hot-toast";
 import WelcomePage from "./pages/WelcomePage";
+import AuthCallback from "./pages/AuthCallback";
 import { useNavigate } from "react-router-dom";
+import {
+  getRedirectResult,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { auth } from "./firebase"; // your Firebase config
 
 interface User {
   uid: string;
@@ -29,6 +36,7 @@ function App() {
   const [hasOnboarded, setHasOnboarded] = useState(false);
   const [showDonation, setShowDonation] = useState(false);
   const [email, setEmail] = useState("");
+
   // const navigate = useNavigate();
   // PWA install prompt handling
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -90,7 +98,7 @@ function App() {
       );
     };
   }, []);
-
+  
   const installPWA = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -164,6 +172,7 @@ function App() {
             path="/signin"
             element={<SigninPage onLogin={handleLogin} />}
           />
+
           <Route
             path="/onboarding"
             element={

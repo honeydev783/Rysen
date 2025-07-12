@@ -47,16 +47,6 @@ class TokenRequest(BaseModel):
     id_token: str
 
 
-# class OnboardingData(BaseModel):
-#     name: str
-#     age_range: str
-#     sex: Optional[str] = None
-#     life_stage: Optional[str] = None
-#     spiritual_maturity: float
-#     spiritual_goals: List[str] = []
-#     avatar: Optional[str] = None
-
-
 class AuthRequest(BaseModel):
     uid: str  # Firebase UID
     email: str
@@ -69,11 +59,6 @@ class OnboardingData(BaseModel):
     spiritualMaturity: float  # 1–3
     spiritualGoals: List[str]
     avatar: str  # key from avatarOptions
-    
-# class DonationRequest(BaseModel):
-#     email: str
-#     amount: int  # in cents
-#     recurring: bool = False
     
 def verify_firebase_token(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):

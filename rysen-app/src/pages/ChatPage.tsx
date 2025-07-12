@@ -16,10 +16,10 @@ const ChatPage = ({ showDonation }: ChatPageProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   
   useEffect(() => {
-    const loginCount = parseInt(localStorage.getItem("login_count") || "1");
-    if(loginCount == 5 || loginCount%10 ==0) {
-        showDonation();
-    }
+    const loginCount = parseInt(localStorage.getItem("login_count") || "1" );
+    // if(loginCount == 5 || loginCount%10 ==0) {
+    //     showDonation();
+    // }
     const greeted = localStorage.getItem("greeted");
 
     // if (!greeted) {
