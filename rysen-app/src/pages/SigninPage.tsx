@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../utils/api";
 import { ClipLoader } from "react-spinners";
 import { useAuth } from "../context/AuthContext"; // 👈 import useAuth
@@ -36,6 +36,8 @@ const SigninPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
   const handleAuth = async (firebaseUser: any) => {
     const idToken = await firebaseUser.getIdToken();
     console.log("idToken===>", idToken);
@@ -70,6 +72,12 @@ const SigninPage = () => {
   };
 
   const handleEmailAuth = async () => {
+    if (isSignup && !acceptedTerms) {
+      toast.error(
+        "You must accept the Terms and confirm you're 16+ to sign up."
+      );
+      return;
+    }
     try {
       setLoading(true);
       const userCredential = isSignup
@@ -81,16 +89,28 @@ const SigninPage = () => {
       console.error("Firebase email auth error:", error);
       if (error.code === "auth/email-already-in-use") {
         toast.error("This email is already registered. Please log in.");
+        setLoading(false);
+        return;
       } else if (error.code === "auth/user-not-found") {
         toast.error("No user found with this email.");
+        setLoading(false);
+        return;
       } else if (error.code === "auth/wrong-password") {
         toast.error("Incorrect password. Please try again.");
+        setLoading(false);
+        return;
       } else if (error.code === "auth/invalid-email") {
         toast.error("Please enter a valid email address.");
+        setLoading(false);
+        return;
       } else if (error.code === "auth/weak-password") {
         toast.error("Password should be at least 6 characters.");
+        setLoading(false);
+        return;
       } else {
         toast.error("Authentication failed. Please try again.");
+        setLoading(false);
+        return;
       }
     }
   };
@@ -167,6 +187,45 @@ const SigninPage = () => {
               {isSignup ? "Sign in" : "Sign up"}
             </button>
           </p>
+
+          <div className="mb-4 text-sm text-gray-700 dark:text-gray-300">
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                className="mt-1 accent-indigo-600"
+              />
+              <span>
+                By checking this box, I confirm I am 16 or older and agree to
+                the{" "}
+                <Link
+                  to="/terms"
+                  className="underline text-blue-600 dark:text-blue-400"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  to="/privacy"
+                  className="underline text-blue-600 dark:text-blue-400"
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
+          </div>
+          <div className="flex mb-4 text-sm text-gray-700 justify-center dark:text-gray-300">
+            <span>
+              <Link
+                  to="/about"
+                  className="underline text-blue-600 dark:text-blue-400"
+                >
+                  About Us
+                </Link>
+            </span>
+          </div>
 
           <div className="text-center mt-6">
             <button

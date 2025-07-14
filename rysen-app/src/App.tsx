@@ -16,8 +16,10 @@ import DonationSuccessPage from "./pages/DonationSuccessPage";
 import ChatPage from "./pages/ChatPage";
 import SettingsPage from "./pages/Settings";
 import WelcomePage from "./pages/WelcomePage";
+import AboutPage from "./pages/AboutPage";
 import { Toaster } from "react-hot-toast";
-
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 function AppContent() {
   const { user, loading } = useAuth();
   const [showDonation, setShowDonation] = useState(false);
@@ -133,6 +135,9 @@ function AppContent() {
         <Route path="/signin" element={<SigninPage />} />
         <Route path="/donate-success" element={<DonationSuccessPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
+        <Route path="/about" element={<AboutPage />} />
 
         <Route
           path="/onboarding"
