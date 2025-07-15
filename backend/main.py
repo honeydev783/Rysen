@@ -8,6 +8,7 @@ from firebase_admin import credentials, firestore
 from firebase_admin import auth as firebase_auth
 import stripe
 import os
+from routers import chat  # Make sure the import path is correct
 from dotenv import load_dotenv
 # Initialize Firebase
 cred = credentials.Certificate("ryenapp.json")  # Replace with your service account key
@@ -15,6 +16,7 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 app = FastAPI()
+app.include_router(chat.router)
 
 app.add_middleware(
     CORSMiddleware,
