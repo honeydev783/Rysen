@@ -56,7 +56,7 @@ const FeedbackIcons = ({ msg, handleFeedback, userEmail }: FeedbackIconsProps) =
   };
 
   return (
-    <div className="absolute bottom-1 right-2 flex space-x-2 mt-2 z-10">
+    <div className="absolute bottom-1 right-2 flex space-x-3 mt-4 z-10">
       {/* Heart */}
       <div
         onClick={() => handleClick("heart", msg.id)}

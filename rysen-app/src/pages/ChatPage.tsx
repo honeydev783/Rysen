@@ -441,6 +441,7 @@ const ChatPage = () => {
     try {
       const res = await api.get("/api/chat/sessions?limit=3&uid=" + user?.uid);
       setChatSessions(res.data.sessions);
+      console.log("Loaded sessions:", res.data.sessions);
       if (res.data.sessions.length > 0) {
         const latest = res.data.sessions[0];
         setCurrentSession(latest);
@@ -586,10 +587,12 @@ const ChatPage = () => {
     } else {
       try {
         const audioBlob = await stopRecording();
+        console.log("Audio blob:", audioBlob);
         const text = await transcribeAudio(
           audioBlob,
           import.meta.env.VITE_OPENAI_API_KEY
         );
+        console.log("Transcribed text:", text);
         setMessage(text);
       } catch (err) {
         console.error("Whisper failed", err);
