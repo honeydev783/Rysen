@@ -8,15 +8,25 @@ from firebase_admin import credentials, firestore
 from firebase_admin import auth as firebase_auth
 import stripe
 import os
-from routers import chat  # Make sure the import path is correct
+from routers import chat_router
+import models
+from db import engine
+# from routers import chat  # Make sure the import path is correct
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
+
 # Initialize Firebase
 cred = credentials.Certificate("ryenapp.json")  # Replace with your service account key
 firebase_admin.initialize_app(cred)
 db = firestore.client()
-
-app = FastAPI()
-app.include_router(chat.router)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: create tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.create_all)
+    yield
+app = FastAPI(title="RYSEN Backend", lifespan=lifespan)
+# app.include_router(chat.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -72,6 +82,10 @@ def verify_firebase_token(authorization: Optional[str] = Header(None)):
         return decoded_token["uid"]
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
+    
+
+
+app.include_router(chat_router.router)    
 @app.post("/auth/signup")
 async def signup(data: TokenRequest):
     try:
