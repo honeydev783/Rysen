@@ -20,6 +20,7 @@ import AboutPage from "./pages/AboutPage";
 import { Toaster } from "react-hot-toast";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import PrayerPage from "./pages/PrayerPage";
 function AppContent() {
   const { user, loading } = useAuth();
   const [showDonation, setShowDonation] = useState(false);
@@ -154,7 +155,15 @@ function AppContent() {
           path="/chat"
           element={
             <ProtectedRoute>
-              <ChatPage showDonation={() => setShowDonation(true)} />
+              <ChatPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/prayer"
+          element={
+            <ProtectedRoute>
+              <PrayerPage />
             </ProtectedRoute>
           }
         />

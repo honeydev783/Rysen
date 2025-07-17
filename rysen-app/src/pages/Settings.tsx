@@ -73,6 +73,7 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
 
       const docRef = doc(db, "users", user.uid);
       const snap = await getDoc(docRef);
+      console.log("snap===>", snap.data());
       if (snap.exists()) {
         setFormData({ ...formData, ...snap.data() });
       }

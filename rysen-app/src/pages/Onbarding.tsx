@@ -30,14 +30,7 @@ const avatarOptions = [
     image: "/avatars/avatar4.png",
     description:
       "Dan is a 40-something father of three who understands the real-life challenges of living out faith while managing work, family, and daily struggles.",
-  },
-  {
-    key: "Nonna",
-    name: "Nonna",
-    image: "/avatars/avatar4.png",
-    description:
-      "Nonna is a warm, comforting grandmotherly figure who’s lived through many seasons of life and found deep wisdom in faith, love, and perseverance.",
-  },
+  }
 ];
 interface OnboardingPageProps {
   onFinish: () => void;
