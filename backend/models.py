@@ -16,7 +16,7 @@ class ChatSession(Base):
 class Message(Base):
     __tablename__ = "messages"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    chat_session_id = Column(UUID(as_uuid=True), ForeignKey("chat_sessions.id"))
+    chat_session_id = Column(UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"))
     sender = Column(String(10))
     text = Column(Text)  # encrypted
     timestamp = Column(TIMESTAMP, server_default=func.now())
@@ -24,7 +24,7 @@ class Message(Base):
 class Feedback(Base):
     __tablename__ = "feedback"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    message_id = Column(UUID(as_uuid=True), ForeignKey("messages.id"))
+    message_id = Column(UUID(as_uuid=True), ForeignKey("messages.id", ondelete="CASCADE"))
     user_email = Column(Text)
     reaction = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())

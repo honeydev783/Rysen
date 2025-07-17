@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
-import { getToken} from "firebase/messaging";
+import { getToken } from "firebase/messaging";
 import { getAuth } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  deleteField,
+} from "firebase/firestore";
 import { db, messaging } from "../firebase";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 const ageOptions = ["Under 16", "16–24", "25–34", "35–49", "50+"];
 
@@ -37,19 +44,12 @@ const avatarOptions = [
     description:
       "Dan is a 40-something father of three who understands the real-life challenges of living out faith while managing work, family, and daily struggles.",
   },
-  {
-    key: "Nonna",
-    name: "Nonna",
-    image: "/avatars/avatar4.png",
-    description:
-      "Nonna is a warm, comforting grandmotherly figure who’s lived through many seasons of life and found deep wisdom in faith, love, and perseverance.",
-  },
 ];
 
 interface SettingsPageProps {
-    showDonation : ()=> void;
+  showDonation: () => void;
 }
-export default function SettingsPage({showDonation}:SettingsPageProps) {
+export default function SettingsPage({ showDonation }: SettingsPageProps) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -103,13 +103,14 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
     if (enabled) {
       try {
         const token = await getToken(messaging, {
-          vapidKey: "BCMW_1bVlIj4L6Tcm9NyYTZb5uDfjisopKjKybhNfMXgs3s-JFYDVGyOSRgC7FWwHTkAUL5qbgE_aX7dcMaAP88",
+          vapidKey:
+            "BCMW_1bVlIj4L6Tcm9NyYTZb5uDfjisopKjKybhNfMXgs3s-JFYDVGyOSRgC7FWwHTkAUL5qbgE_aX7dcMaAP88",
         });
         await updateDoc(doc(db, "users", user.uid), {
           notificationsEnabled: true,
           fcmToken: token,
         });
-        
+
         toast.success("Notifications enabled!");
       } catch (err) {
         toast.error("Failed to enable notifications.");
@@ -148,13 +149,20 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
   const clearChatHistory = async () => {
     const auth = getAuth();
     const user = auth.currentUser;
-    if (!user) return;
-
-    await updateDoc(doc(db, "users", user.uid), {
-      chatHistory: deleteField(),
-    });
-
-    toast.success("Chat history cleared.");
+    if (!user) { navigate("/signin"); return; };
+    try {
+      await api.delete(`/api/chat-sessions/user/${user.uid}`);
+      console.log("Deleted all chat sessions.");
+      toast.success("Chat history cleared.");
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        toast.error("No chat sessions found to delete.");
+        console.warn("No sessions found.");
+      } else {
+        toast.error("Failed to clear chat history.");
+        console.error("Failed to delete chat sessions:", error);
+      }
+    }
   };
 
   const clearPastoralMemory = async () => {
@@ -200,9 +208,7 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
           <label className="block mb-2">Name</label>
           <input
             value={formData.name}
-            onChange={(e) =>
-              setFormData({ ...formData, name: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             className="w-full p-2 border rounded dark:bg-gray-700"
             placeholder="Your Name"
           />
@@ -227,9 +233,7 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
           <label className="block mb-2">Sex</label>
           <select
             value={formData.sex}
-            onChange={(e) =>
-              setFormData({ ...formData, sex: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
             className="w-full p-2 border rounded dark:bg-gray-700"
           >
             <option value="">Select</option>
@@ -316,9 +320,7 @@ export default function SettingsPage({showDonation}:SettingsPageProps) {
             {avatarOptions.map((avatar) => (
               <button
                 key={avatar.key}
-                onClick={() =>
-                  setFormData({ ...formData, avatar: avatar.key })
-                }
+                onClick={() => setFormData({ ...formData, avatar: avatar.key })}
                 className={`border rounded-xl p-3 text-left transition ${
                   formData.avatar === avatar.key
                     ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-800 dark:border-indigo-400"

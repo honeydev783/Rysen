@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
 from uuid import uuid4
 from datetime import datetime, timedelta
 from firebase_admin import auth as firebase_auth
@@ -14,9 +15,12 @@ router = APIRouter(prefix="/api")
 class TokenRequest(BaseModel):
     uid: str
 
+
 class SessionRequest(BaseModel):
     uid: str
     topic: str
+
+
 # ⚠ stub: get current user_id (from auth/jwt)
 def get_user_id(data: TokenRequest):
     return data.uid  # replace with real user id
@@ -66,7 +70,9 @@ async def get_session(
 async def create_session(data: SessionRequest, db: AsyncSession = Depends(get_db)):
     user_id = data.uid
     topic = data.topic if data.topic else "chat"
-    session = models.ChatSession(id=uuid4(), user_id=user_id, topic=topic, created_at=datetime.now())
+    session = models.ChatSession(
+        id=uuid4(), user_id=user_id, topic=topic, created_at=datetime.now()
+    )
     db.add(session)
     await db.commit()
     return {"id": session.id, "created_at": session.created_at}
@@ -201,7 +207,9 @@ async def send_intention(
         "sender": "ai",
         "text": ai_response,
         "timestamp": datetime.now().isoformat(),
-    }    
+    }
+
+
 @router.post("/chat/message")
 async def send_message(
     payload: schemas.NewMessageIn, db: AsyncSession = Depends(get_db)
@@ -220,7 +228,7 @@ async def send_message(
     avatar_description = utils.get_avatar_name(user_profile.avatar)
     spiritual_maturity = utils.get_spirituality_stage(user_profile.spiritual_maturity)
     spiritual_goals = ", ".join(user_profile.spiritual_goals)
-    
+
     m = await db.execute(
         models.Message.__table__.select()
         .where(models.Message.chat_session_id == payload.chat_session_id)
@@ -334,3 +342,39 @@ async def add_feedback(payload: schemas.FeedbackIn, db: AsyncSession = Depends(g
         db.add(flagged)
     await db.commit()
     return {"success": True}
+
+
+@router.delete("/chat-sessions/user/{user_id}")
+async def delete_user_data(user_id: str, db: AsyncSession = Depends(get_db)):
+    try:
+        # Get all ChatSession IDs for user
+        result = await db.execute(select(models.ChatSession.id).where(models.ChatSession.user_id == user_id))
+        chat_session_ids = [row[0] for row in result.all()]
+
+        if not chat_session_ids:
+            return {"status": "success", "detail": "No chat sessions found for this user."}
+
+        # Get all Message IDs in those chat sessions
+        result = await db.execute(select(models.Message.id).where(models.Message.chat_session_id.in_(chat_session_ids)))
+        message_ids = [row[0] for row in result.all()]
+
+        # Delete Feedback
+        if message_ids:
+            await db.execute(delete(models.Feedback).where(models.Feedback.message_id.in_(message_ids)))
+
+            # Delete FlaggedResponse
+            await db.execute(delete(models.FlaggedResponse).where(models.FlaggedResponse.message_id.in_(message_ids)))
+
+            # Delete Messages
+            await db.execute(delete(models.Message).where(models.Message.id.in_(message_ids)))
+
+        # Delete ChatSessions
+        await db.execute(delete(models.ChatSession).where(models.ChatSession.id.in_(chat_session_ids)))
+
+        await db.commit()
+
+        return {"status": "success", "detail": f"Deleted data for user_id={user_id}"}
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
