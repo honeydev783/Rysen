@@ -118,25 +118,6 @@ async def list_sessions(
         )
     return {"sessions": sessions}
 
-
-# @router.post("/chat/message")
-# async def send_message(payload: schemas.NewMessageIn, db: AsyncSession = Depends(get_db)):
-#     # user_id = get_user_id()
-#     # Save user message
-#     encrypted = utils.encrypt_text(payload.text)
-#     user_msg = models.Message(id=uuid4(), chat_session_id=payload.chat_session_id,
-#                               sender=payload.sender, text=encrypted)
-#     db.add(user_msg)
-#     await db.commit()
-#     # Build prompt: (simplified) get last 3 messages & summarize
-#     prompt = f"User said: {payload.text}. Reply warmly & theologically."
-#     ai_text = await utils.call_llm(prompt)
-#     ai_msg = models.Message(id=uuid4(), chat_session_id=payload.chat_session_id,
-#                             sender="ai", text=utils.encrypt_text(ai_text))
-#     db.add(ai_msg)
-#     await db.commit()
-#     # await utils.log_analytics(db, str(user_id), "message_sent", {"session_id": str(payload.chat_session_id)})
-#     return {"id": ai_msg.id, "sender": "ai", "text": ai_text, "timestamp": datetime.now().isoformat()}
 @router.post("/prayer/message")
 async def send_intention(
     payload: schemas.NewMessageIn, db: AsyncSession = Depends(get_db)
