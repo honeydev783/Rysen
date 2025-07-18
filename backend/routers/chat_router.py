@@ -8,9 +8,24 @@ from pydantic import BaseModel
 from db import get_db
 import models, schemas, utils
 import json
+from utils import client
+from uuid import UUID
 
 router = APIRouter(prefix="/api")
 
+
+class ScriptureRequest(BaseModel):
+    reading_title: str
+    scripture_reference: str
+    chat_session_id: UUID
+    sender: str
+    text: str
+class SaintRequest(BaseModel):
+    saint_name: str
+    avatar_name: str
+    chat_session_id: UUID
+    sender: str
+    text: str
 
 class TokenRequest(BaseModel):
     uid: str
@@ -19,6 +34,49 @@ class TokenRequest(BaseModel):
 class SessionRequest(BaseModel):
     uid: str
     topic: str
+
+
+class MassReadingResponse(BaseModel):
+    date: str
+    season: str
+    season_week: str
+    year: str
+    saint: str
+    readings: dict
+
+
+def build_prompt(today: str) -> str:
+    return f"""
+    Today is {today}.
+    You are a Catholic liturgical calendar assistant. Give a JSON response with:
+    - date
+    - season (like "Ordinary Time")
+    - season_week (e.g., "15")
+    - year (A, B, or C)
+    - saint of the day (only main Roman calendar)
+    - readings:
+    - first (First Reading)
+    - psalm (Responsorial Psalm)
+    - second (if applicable)
+    - gospel (Gospel Reading)
+
+    Ensure strict JSON format, like:
+    {{
+    "date": "2025-07-17",
+    "season": "Ordinary Time",
+    "season_week": "15",
+    "year": "C",
+    "saint": "St. Alexius",
+    "readings": {{
+        "first": "Exodus 3:13–20",
+        "psalm": "Psalm 105:1, 5, 8–9, 24–27",
+        "second": "",
+        "gospel": "Matthew 11:28–30"
+    }}
+    }}
+    Only return valid JSON, no explanation.
+    Do NOT include ```json or ``` in the output.
+    """
 
 
 # ⚠ stub: get current user_id (from auth/jwt)
@@ -118,6 +176,7 @@ async def list_sessions(
         )
     return {"sessions": sessions}
 
+
 @router.post("/prayer/message")
 async def send_intention(
     payload: schemas.NewMessageIn, db: AsyncSession = Depends(get_db)
@@ -189,6 +248,165 @@ async def send_intention(
         "text": ai_response,
         "timestamp": datetime.now().isoformat(),
     }
+
+@router.post("/bible/saint")
+async def generate_saint_reading(
+    request: SaintRequest, db: AsyncSession = Depends(get_db)
+):
+    encrypted = utils.encrypt_text(request.text)
+    user_msg = models.Message(
+        id=uuid4(),
+        chat_session_id=request.chat_session_id,
+        sender=request.sender,
+        text=encrypted,
+    )
+    db.add(user_msg)
+    await db.commit()
+    try:
+        prompt = f"""
+        You are a Catholic spiritual companion inside a mobile app. The app provides users with daily educational reflections about a saint.
+        When given a saint's name and an avatar name (Pio, Therese, Kim, or Dan), generate a brief, structured response about the saint in the voice of the avatar.
+
+        Use a reverent, educational, and pastoral tone. Do not include personal intentions or casual/slang language.
+        Do not impersonate the saint or avatar. Ensure all facts are historically accurate and consistent with Catholic tradition.
+
+        Format:
+        1. Start with the saint's name in **bold**.
+        2. A 2-sentence overview of who the saint is and why they're significant in **bold**.
+        3. 3 sentences about their time period, origin, and historical context in **bold**.
+        4. 3–4 sentences about their key works, teachings, and notable quotes in **bold**.
+        5. A 3–4 sentence prayer of intercession in **bold**. For Pio and Therese, reference Mary. For Kim and Dan, include patronage or a relevant saint. End with: “Saint [Name], pray for us. Amen.” in **bold**
+
+        Saint: {request.saint_name}
+        Avatar: {request.avatar_name}
+        """
+        response = client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a faithful Catholic scripture companion.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.7,
+            max_tokens=600,
+        )
+
+        reading_output = response.choices[0].message.content
+        ai_msg = models.Message(
+            id=uuid4(),
+            chat_session_id=request.chat_session_id,
+            sender="ai",
+            text=utils.encrypt_text(reading_output),
+        )
+        db.add(ai_msg)
+        await db.commit()
+        return {
+            "id": str(ai_msg.id),
+            "sender": "ai",
+            "text": reading_output,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate reading: {str(e)}"
+        )
+@router.post("/bible/scripture")
+async def generate_scripture_reading_api(
+    request: ScriptureRequest, db: AsyncSession = Depends(get_db)
+):
+    encrypted = utils.encrypt_text(request.text)
+    user_msg = models.Message(
+        id=uuid4(),
+        chat_session_id=request.chat_session_id,
+        sender=request.sender,
+        text=encrypted,
+    )
+    db.add(user_msg)
+    await db.commit()
+    try:
+        prompt = f"""
+        You are a Catholic spiritual companion inside the Bible Study Tab of a Catholic app.
+        Your task is to produce a Scripture reading output that follows these requirements:
+
+        - Use the ESV Catholic Edition (preferred). If unavailable, use NABRE or RSV‑CE.
+        - Maintain a reverent, faithful-to-doctrine tone, without additional commentary.
+        - Format the output exactly as:
+        1. Reading title in ALL CAPS (e.g., “FIRST READING” or “GOSPEL”) — use: {request.reading_title}.
+        2. Scripture reference — use: {request.scripture_reference}.
+        3. A one-sentence overview briefly summarizing what the passage contains.
+        4. The full text of the passage, formatted so that:
+            - Each verse starts on a new line.
+            - Verse numbers appear in parentheses at the start of each line.
+            - Verse text itself is in bold (use actual font styling, not markdown asterisks).
+        - Do NOT include commentary, footnotes, headings, or cross-references.
+        - Keep formatting faithful to the translation’s style.
+
+        Now, produce only the Scripture reading output in this format using these inputs:
+        - reading_title: "{request.reading_title}"
+        - scripture_reference: "{request.scripture_reference}"
+        """
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a faithful Catholic scripture companion.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.5,
+        )
+
+        reading_output = response.choices[0].message.content
+        ai_msg = models.Message(
+            id=uuid4(),
+            chat_session_id=request.chat_session_id,
+            sender="ai",
+            text=utils.encrypt_text(reading_output),
+        )
+        db.add(ai_msg)
+        await db.commit()
+        return {
+            "id": str(ai_msg.id),
+            "sender": "ai",
+            "text": reading_output,
+            "timestamp": datetime.now().isoformat(),
+        }
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate reading: {str(e)}"
+        )
+
+
+@router.get("/mass-readings", response_model=MassReadingResponse)
+def get_mass_readings():
+    today = datetime.now().strftime("%Y-%m-%d")
+    prompt = build_prompt(today)
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a Catholic liturgical assistant.",
+                },
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.3,
+        )
+        content = response.choices[0].message.content.strip()
+
+        # Optional: validate it's proper JSON format
+        mass_readings = json.loads(content)
+        return mass_readings
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/chat/message")
@@ -329,28 +547,51 @@ async def add_feedback(payload: schemas.FeedbackIn, db: AsyncSession = Depends(g
 async def delete_user_data(user_id: str, db: AsyncSession = Depends(get_db)):
     try:
         # Get all ChatSession IDs for user
-        result = await db.execute(select(models.ChatSession.id).where(models.ChatSession.user_id == user_id))
+        result = await db.execute(
+            select(models.ChatSession.id).where(models.ChatSession.user_id == user_id)
+        )
         chat_session_ids = [row[0] for row in result.all()]
 
         if not chat_session_ids:
-            return {"status": "success", "detail": "No chat sessions found for this user."}
+            return {
+                "status": "success",
+                "detail": "No chat sessions found for this user.",
+            }
 
         # Get all Message IDs in those chat sessions
-        result = await db.execute(select(models.Message.id).where(models.Message.chat_session_id.in_(chat_session_ids)))
+        result = await db.execute(
+            select(models.Message.id).where(
+                models.Message.chat_session_id.in_(chat_session_ids)
+            )
+        )
         message_ids = [row[0] for row in result.all()]
 
         # Delete Feedback
         if message_ids:
-            await db.execute(delete(models.Feedback).where(models.Feedback.message_id.in_(message_ids)))
+            await db.execute(
+                delete(models.Feedback).where(
+                    models.Feedback.message_id.in_(message_ids)
+                )
+            )
 
             # Delete FlaggedResponse
-            await db.execute(delete(models.FlaggedResponse).where(models.FlaggedResponse.message_id.in_(message_ids)))
+            await db.execute(
+                delete(models.FlaggedResponse).where(
+                    models.FlaggedResponse.message_id.in_(message_ids)
+                )
+            )
 
             # Delete Messages
-            await db.execute(delete(models.Message).where(models.Message.id.in_(message_ids)))
+            await db.execute(
+                delete(models.Message).where(models.Message.id.in_(message_ids))
+            )
 
         # Delete ChatSessions
-        await db.execute(delete(models.ChatSession).where(models.ChatSession.id.in_(chat_session_ids)))
+        await db.execute(
+            delete(models.ChatSession).where(
+                models.ChatSession.id.in_(chat_session_ids)
+            )
+        )
 
         await db.commit()
 

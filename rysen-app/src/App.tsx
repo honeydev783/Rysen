@@ -21,6 +21,7 @@ import { Toaster } from "react-hot-toast";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import PrayerPage from "./pages/PrayerPage";
+import BiblePage from "./pages/BiblePage";
 function AppContent() {
   const { user, loading } = useAuth();
   const [showDonation, setShowDonation] = useState(false);
@@ -164,6 +165,14 @@ function AppContent() {
           element={
             <ProtectedRoute>
               <PrayerPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/bible"
+          element={
+            <ProtectedRoute>
+              <BiblePage />
             </ProtectedRoute>
           }
         />
