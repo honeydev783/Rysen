@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, ForeignKey, Boolean, TIMESTAMP, func
+from sqlalchemy import Column, String, Text, ForeignKey, Boolean, TIMESTAMP, func, Date
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
@@ -38,3 +38,17 @@ class FlaggedResponse(Base):
     reviewed = Column(Boolean, default=False)
     review_notes = Column(Text)
     created_at = Column(TIMESTAMP, server_default=func.now())
+
+
+class MassReading(Base):
+    __tablename__ = "mass_readings"
+
+    date = Column(String, primary_key=True)
+    saint = Column(String)
+    season = Column(String)
+    season_week = Column(String)
+    year = Column(String)
+    first = Column(String)
+    gospel = Column(String)
+    psalm = Column(String)
+    second = Column(String, nullable=True)

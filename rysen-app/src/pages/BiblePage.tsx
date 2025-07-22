@@ -140,6 +140,7 @@ const BiblePage = () => {
     avatar: "",
   });
   const [showButtons, setShowButtons] = useState(false);
+  const [showNewReading, setShowNewReading] = useState(false);
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
@@ -213,7 +214,8 @@ const BiblePage = () => {
 
     setMessages([welcomeMsg]);
     try {
-      const today = new Date().toISOString().split("T")[0];
+      // const today = new Date().toISOString().split("T")[0];
+      const today = new Date().toLocaleDateString("en-CA");
       console.log("today", today);
       if (localStorage.getItem(today)) {
         console.log(
@@ -223,7 +225,7 @@ const BiblePage = () => {
         setMassReadings(JSON.parse(localStorage.getItem(today) || "{}"));
         setShowReadings(true);
       } else {
-        const res = await api.get("/api/mass-readings");
+        const res = await api.get("/api/mass-readings?date_str=" + today);
         setMassReadings(res.data);
         localStorage.setItem(today, JSON.stringify(res.data));
         setShowReadings(true);
@@ -325,6 +327,8 @@ const BiblePage = () => {
   };
 
   const handleSaintClick = async (title: string, saint: string) => {
+    const today = new Date().toLocaleDateString("en-CA");
+    const key = `${today}:saint`;
     setShowReadings(false);
     setMessages([]);
     const messageText = title + ":" + saint;
@@ -333,34 +337,51 @@ const BiblePage = () => {
     const typingMsg: Message = { sender: "typing", text: "..." };
     setMessages((prev) => [...prev, userMsg, typingMsg]);
     try {
-      const res = await api.post("/api/bible/saint", {
-        saint_name: saint,
-        chat_session_id: currentSession?.id,
-        sender: "user",
-        text: messageText,
-        avatar_name : userProfile.avatar || "Pio",
-      });
-      const aiReply: Message = {
-        id: res.data.id,
-        sender: res.data.sender,
-        text: res.data.text,
-        timestamp: res.data.timestamp,
-      };
-
-      // Replace typing with real reply
-      setMessages((prev) => {
-        const withoutTyping = prev.filter((m) => m.sender !== "typing");
-        return [...withoutTyping, aiReply];
-      });
-      console.log("Scripture response:", res.data);
+      if (localStorage.getItem(key)) {
+        const localData = JSON.parse(localStorage.getItem(key) || "{}");
+        const aiReply: Message = {
+          id: localData.id,
+          sender: localData.sender,
+          text: localData.text,
+          timestamp: localData.timestamp,
+        };
+        setMessages((prev) => {
+          const withoutTyping = prev.filter((m) => m.sender !== "typing");
+          return [...withoutTyping, aiReply];
+        });
+      } else {
+        const res = await api.post("/api/bible/saint", {
+          saint_name: saint,
+          chat_session_id: currentSession?.id,
+          sender: "user",
+          text: messageText,
+          avatar_name: userProfile.avatar || "Pio",
+          date_str: today,
+        });
+        const aiReply: Message = {
+          id: res.data.id,
+          sender: res.data.sender,
+          text: res.data.text,
+          timestamp: res.data.timestamp,
+        };
+        localStorage.setItem(key, JSON.stringify(res.data));
+        // Replace typing with real reply
+        setMessages((prev) => {
+          const withoutTyping = prev.filter((m) => m.sender !== "typing");
+          return [...withoutTyping, aiReply];
+        });
+        console.log("Scripture response:", res.data);
+      }
     } catch (err) {
       console.error("Failed to handle scripture click", err);
     } finally {
       setIsTyping(false);
       setShowButtons(true);
+      setShowNewReading(false);
     }
-  }
+  };
   const handleScriptureClick = async (title: string, scripture: string) => {
+    const today = new Date().toLocaleDateString("en-CA");
     setShowReadings(false);
     setMessages([]);
     const messageText = title + ":" + scripture;
@@ -368,33 +389,50 @@ const BiblePage = () => {
     setIsTyping(true);
     const typingMsg: Message = { sender: "typing", text: "..." };
     setMessages((prev) => [...prev, userMsg, typingMsg]);
-
+    const key = `${today}:${title}`;
     try {
-      const res = await api.post("/api/bible/scripture", {
-        reading_title: title,
-        scripture_reference: scripture,
-        chat_session_id: currentSession?.id,
-        sender: "user",
-        text: messageText,
-      });
-      const aiReply: Message = {
-        id: res.data.id,
-        sender: res.data.sender,
-        text: res.data.text,
-        timestamp: res.data.timestamp,
-      };
-
-      // Replace typing with real reply
-      setMessages((prev) => {
-        const withoutTyping = prev.filter((m) => m.sender !== "typing");
-        return [...withoutTyping, aiReply];
-      });
-      console.log("Scripture response:", res.data);
+      if (localStorage.getItem(key)) {
+        const localData = JSON.parse(localStorage.getItem(key) || "{}");
+        console.log("localData===>", localData);
+        const aiReply: Message = {
+          id: localData.id,
+          sender: localData.sender,
+          text: localData.text,
+          timestamp: localData.timestamp,
+        };
+        setMessages((prev) => {
+          const withoutTyping = prev.filter((m) => m.sender !== "typing");
+          return [...withoutTyping, aiReply];
+        });
+      } else {
+        const res = await api.post("/api/bible/scripture", {
+          reading_title: title,
+          scripture_reference: scripture,
+          chat_session_id: currentSession?.id,
+          sender: "user",
+          text: messageText,
+          date: today,
+        });
+        const aiReply: Message = {
+          id: res.data.id,
+          sender: res.data.sender,
+          text: res.data.text,
+          timestamp: res.data.timestamp,
+        };
+        localStorage.setItem(key, JSON.stringify(res.data));
+        // Replace typing with real reply
+        setMessages((prev) => {
+          const withoutTyping = prev.filter((m) => m.sender !== "typing");
+          return [...withoutTyping, aiReply];
+        });
+        console.log("Scripture response:", res.data);
+      }
     } catch (err) {
       console.error("Failed to handle scripture click", err);
     } finally {
       setIsTyping(false);
       setShowButtons(true);
+      setShowNewReading(true);
     }
   };
 
@@ -523,7 +561,8 @@ const BiblePage = () => {
                 </p>
               </button>
 
-              <button className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+              <button
+                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleSaintClick(
                     "Saint of the Day ",
@@ -543,32 +582,6 @@ const BiblePage = () => {
         )}
       </div>
 
-      {/* {!showButtons && (
-        <footer className="p-4 border-t dark:border-gray-800 flex gap-2">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={placeholder}
-            className="flex-1 rounded-xl px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"
-          />
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="bg-blue-600 text-white px-4 py-2 rounded-xl"
-          >
-            Send
-          </button>
-          <button
-            onClick={handleMicClick}
-            className={`p-2 rounded-xl ${
-              isRecording ? "bg-red-500" : "bg-gray-200 dark:bg-gray-700"
-            }`}
-          >
-            <Mic className="text-white" />
-          </button>
-        </footer>
-      )} */}
       <footer className="p-4 border-t dark:border-gray-800 flex gap-2">
         {showButtons && (
           <>
@@ -581,12 +594,14 @@ const BiblePage = () => {
             >
               Study This Verse
             </button>
-            <button
-              onClick={() => navigate("/chat")}
-              className="bg-gray-400 text-white px-4 py-2 rounded-xl flex-1"
-            >
-              Select New Reading
-            </button>
+            {showNewReading && (
+              <button
+                onClick={() => navigate("/chat")}
+                className="bg-gray-400 text-white px-4 py-2 rounded-xl flex-1"
+              >
+                Select New Reading
+              </button>
+            )}
           </>
         )}
       </footer>

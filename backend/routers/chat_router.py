@@ -10,8 +10,14 @@ import models, schemas, utils
 import json
 from utils import client
 from uuid import UUID
+from crud import get_reading_by_date, save_reading
+import html
 
 router = APIRouter(prefix="/api")
+
+
+class DailyMassReadingRequest(BaseModel):
+    date_str: str
 
 
 class ScriptureRequest(BaseModel):
@@ -20,12 +26,17 @@ class ScriptureRequest(BaseModel):
     chat_session_id: UUID
     sender: str
     text: str
+    date: str
+
+
 class SaintRequest(BaseModel):
     saint_name: str
     avatar_name: str
     chat_session_id: UUID
     sender: str
     text: str
+    date_str: str
+
 
 class TokenRequest(BaseModel):
     uid: str
@@ -62,21 +73,28 @@ def build_prompt(today: str) -> str:
 
     Ensure strict JSON format, like:
     {{
-    "date": "2025-07-17",
+    "date": "{today}",
     "season": "Ordinary Time",
     "season_week": "15",
     "year": "C",
-    "saint": "St. Alexius",
+    "saint": "Saint of the Day Name",
     "readings": {{
-        "first": "Exodus 3:13–20",
-        "psalm": "Psalm 105:1, 5, 8–9, 24–27",
-        "second": "",
-        "gospel": "Matthew 11:28–30"
+        "first": "...",
+        "psalm": "...",
+        "second": "...",
+        "gospel": "..."
     }}
     }}
     Only return valid JSON, no explanation.
     Do NOT include ```json or ``` in the output.
     """
+
+
+def clean_reading_text(text: str) -> str:
+    if not text:
+        return ""
+    # Decode HTML entities and replace special hyphens with standard dash
+    return html.unescape(text).replace("\u2010", "-").strip()
 
 
 # ⚠ stub: get current user_id (from auth/jwt)
@@ -249,6 +267,7 @@ async def send_intention(
         "timestamp": datetime.now().isoformat(),
     }
 
+
 @router.post("/bible/saint")
 async def generate_saint_reading(
     request: SaintRequest, db: AsyncSession = Depends(get_db)
@@ -262,57 +281,79 @@ async def generate_saint_reading(
     )
     db.add(user_msg)
     await db.commit()
+    key = f"saint:{request.date_str}"
+    cached = await utils.get_cache(key)
     try:
-        prompt = f"""
-        You are a Catholic spiritual companion inside a mobile app. The app provides users with daily educational reflections about a saint.
-        When given a saint's name and an avatar name (Pio, Therese, Kim, or Dan), generate a brief, structured response about the saint in the voice of the avatar.
+        if cached:
 
-        Use a reverent, educational, and pastoral tone. Do not include personal intentions or casual/slang language.
-        Do not impersonate the saint or avatar. Ensure all facts are historically accurate and consistent with Catholic tradition.
+            ai_msg = models.Message(
+                id=uuid4(),
+                chat_session_id=request.chat_session_id,
+                sender="ai",
+                text=utils.encrypt_text(cached),
+            )
+            db.add(ai_msg)
+            await db.commit()
+            return {
+                "id": str(ai_msg.id),
+                "sender": "ai",
+                "text": cached,
+                "timestamp": datetime.now().isoformat(),
+            }
+        else:
+            prompt = f"""
+            You are a Catholic spiritual companion inside a mobile app. The app provides users with daily educational reflections about a saint.
+            When given a saint's name and an avatar name (Pio, Therese, Kim, or Dan), generate a brief, structured response about the saint in the voice of the avatar.
 
-        Format:
-        1. Start with the saint's name in **bold**.
-        2. A 2-sentence overview of who the saint is and why they're significant in **bold**.
-        3. 3 sentences about their time period, origin, and historical context in **bold**.
-        4. 3–4 sentences about their key works, teachings, and notable quotes in **bold**.
-        5. A 3–4 sentence prayer of intercession in **bold**. For Pio and Therese, reference Mary. For Kim and Dan, include patronage or a relevant saint. End with: “Saint [Name], pray for us. Amen.” in **bold**
+            Use a reverent, educational, and pastoral tone. Do not include personal intentions or casual/slang language.
+            Do not impersonate the saint or avatar. Ensure all facts are historically accurate and consistent with Catholic tradition.
 
-        Saint: {request.saint_name}
-        Avatar: {request.avatar_name}
-        """
-        response = client.chat.completions.create(
-            model="gpt-4-turbo",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a faithful Catholic scripture companion.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.7,
-            max_tokens=600,
-        )
+            Format:
+            1. Start with the saint's name in **bold**.
+            2. A 2-sentence overview of who the saint is and why they're significant in **bold**.
+            3. 3 sentences about their time period, origin, and historical context in **bold**.
+            4. 3–4 sentences about their key works, teachings, and notable quotes in **bold**.
+            5. A 3–4 sentence prayer of intercession in **bold**. For Pio and Therese, reference Mary. For Kim and Dan, include patronage or a relevant saint. End with: “Saint [Name], pray for us. Amen.” in **bold**
 
-        reading_output = response.choices[0].message.content
-        ai_msg = models.Message(
-            id=uuid4(),
-            chat_session_id=request.chat_session_id,
-            sender="ai",
-            text=utils.encrypt_text(reading_output),
-        )
-        db.add(ai_msg)
-        await db.commit()
-        return {
-            "id": str(ai_msg.id),
-            "sender": "ai",
-            "text": reading_output,
-            "timestamp": datetime.now().isoformat(),
-        }
+            Saint: {request.saint_name}
+            Avatar: Pio
+            """
+            response = client.chat.completions.create(
+                model="gpt-4-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a faithful Catholic scripture companion.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.7,
+                max_tokens=600,
+            )
+
+            reading_output = response.choices[0].message.content
+            ai_msg = models.Message(
+                id=uuid4(),
+                chat_session_id=request.chat_session_id,
+                sender="ai",
+                text=utils.encrypt_text(reading_output),
+            )
+            db.add(ai_msg)
+            await db.commit()
+            await utils.set_cache(key, reading_output)
+            return {
+                "id": str(ai_msg.id),
+                "sender": "ai",
+                "text": reading_output,
+                "timestamp": datetime.now().isoformat(),
+            }
 
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to generate reading: {str(e)}"
+            status_code=500, detail=f"Failed to generate saint reading: {str(e)}"
         )
+
+
 @router.post("/bible/scripture")
 async def generate_scripture_reading_api(
     request: ScriptureRequest, db: AsyncSession = Depends(get_db)
@@ -326,55 +367,76 @@ async def generate_scripture_reading_api(
     )
     db.add(user_msg)
     await db.commit()
+    key = f"{request.date}:{request.reading_title}"
+    cached = await utils.get_cache(key)
     try:
-        prompt = f"""
-        You are a Catholic spiritual companion inside the Bible Study Tab of a Catholic app.
-        Your task is to produce a Scripture reading output that follows these requirements:
+        if cached:
+            print(f"Returning cached reading for {key} =======>", cached)
+            ai_msg = models.Message(
+                id=uuid4(),
+                chat_session_id=request.chat_session_id,
+                sender="ai",
+                text=utils.encrypt_text(cached),
+            )
+            db.add(ai_msg)
+            await db.commit()
+            return {
+                "id": str(ai_msg.id),
+                "sender": "ai",
+                "text": cached,
+                "timestamp": datetime.now().isoformat(),
+            }
+        else:
+            prompt = f"""
+            You are a Catholic spiritual companion inside the Bible Study Tab of a Catholic app.
+            Your task is to produce a Scripture reading output that follows these requirements:
 
-        - Use the ESV Catholic Edition (preferred). If unavailable, use NABRE or RSV‑CE.
-        - Maintain a reverent, faithful-to-doctrine tone, without additional commentary.
-        - Format the output exactly as:
-        1. Reading title in ALL CAPS (e.g., “FIRST READING” or “GOSPEL”) — use: {request.reading_title}.
-        2. Scripture reference — use: {request.scripture_reference}.
-        3. A one-sentence overview briefly summarizing what the passage contains.
-        4. The full text of the passage, formatted so that:
-            - Each verse starts on a new line.
-            - Verse numbers appear in parentheses at the start of each line.
-            - Verse text itself is in bold (use actual font styling, not markdown asterisks).
-        - Do NOT include commentary, footnotes, headings, or cross-references.
-        - Keep formatting faithful to the translation’s style.
+            - Use the ESV Catholic Edition (preferred). If unavailable, use NABRE or RSV‑CE.
+            - Maintain a reverent, faithful-to-doctrine tone, without additional commentary.
+            - Format the output exactly as:
+            1. Reading title in ALL CAPS (e.g., “FIRST READING” or “GOSPEL”) — use: {request.reading_title}.
+            2. Scripture reference — use: {request.scripture_reference}.
+            3. A one-sentence overview briefly summarizing what the passage contains.
+            4. The full text of the passage, formatted so that:
+                - Each verse starts on a new line.
+                - Verse numbers appear in parentheses at the start of each line.
+                - Verse text itself is in bold (use actual font styling, not markdown asterisks).
+            - Do NOT include commentary, footnotes, headings, or cross-references.
+            - Keep formatting faithful to the translation’s style.
 
-        Now, produce only the Scripture reading output in this format using these inputs:
-        - reading_title: "{request.reading_title}"
-        - scripture_reference: "{request.scripture_reference}"
-        """
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a faithful Catholic scripture companion.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.5,
-        )
+            Now, produce only the Scripture reading output in this format using these inputs:
+            - reading_title: "{request.reading_title}"
+            - scripture_reference: "{request.scripture_reference}"
+            """
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a faithful Catholic scripture companion.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.5,
+            )
 
-        reading_output = response.choices[0].message.content
-        ai_msg = models.Message(
-            id=uuid4(),
-            chat_session_id=request.chat_session_id,
-            sender="ai",
-            text=utils.encrypt_text(reading_output),
-        )
-        db.add(ai_msg)
-        await db.commit()
-        return {
-            "id": str(ai_msg.id),
-            "sender": "ai",
-            "text": reading_output,
-            "timestamp": datetime.now().isoformat(),
-        }
+            reading_output = response.choices[0].message.content
+
+            ai_msg = models.Message(
+                id=uuid4(),
+                chat_session_id=request.chat_session_id,
+                sender="ai",
+                text=utils.encrypt_text(reading_output),
+            )
+            db.add(ai_msg)
+            await db.commit()
+            await utils.set_cache(key, reading_output)
+            return {
+                "id": str(ai_msg.id),
+                "sender": "ai",
+                "text": reading_output,
+                "timestamp": datetime.now().isoformat(),
+            }
 
     except Exception as e:
         raise HTTPException(
@@ -383,28 +445,59 @@ async def generate_scripture_reading_api(
 
 
 @router.get("/mass-readings", response_model=MassReadingResponse)
-def get_mass_readings():
-    today = datetime.now().strftime("%Y-%m-%d")
-    prompt = build_prompt(today)
-
+async def get_mass_readings(
+    date_str: str = Query(..., description="Date in YYYY-MM-DD format"),
+    db: AsyncSession = Depends(get_db),
+):
+    # today = datetime.now().strftime("%Y-%m-%d")
+    print("Fetching Mass readings for date:=======>", date_str)
+    key = f"mass:{date_str}"
     try:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a Catholic liturgical assistant.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=0.3,
-        )
-        content = response.choices[0].message.content.strip()
+        cached = await utils.get_cache(key)
+        if cached:
+            date = cached.get("date", date_str)
+            saint = cached.get("saint", "")
+            season = cached.get("season", "")
+            season_week = cached.get("season_week", "")
+            year = cached.get("year", "")
+            readings = {
+                "first": clean_reading_text(cached.get("first", "")),
+                "psalm": clean_reading_text(cached.get("psalm", "")),
+                "second": clean_reading_text(cached.get("second", "")),
+                "gospel": clean_reading_text(cached.get("gospel", "")),
+            }
+            print(f"Returning cached acted Mass readings for {date} =======>")
+            return MassReadingResponse(
+                date=date,
+                saint=saint,
+                season=season,
+                season_week=season_week,
+                year=year,
+                readings=readings,
+            )
 
-        # Optional: validate it's proper JSON format
-        mass_readings = json.loads(content)
-        return mass_readings
+        else:
+            readings = await get_reading_by_date(date_str, db)
+            date = readings.date if readings else date_str
+            saint = readings.saint if readings else ""
+            season = readings.season if readings else ""
+            season_week = readings.season_week if readings else ""
+            year = readings.year if readings else ""
+            readings = {
+                "first": clean_reading_text(readings.first) if readings else "",
+                "psalm": clean_reading_text(readings.psalm) if readings else "",
+                "second": clean_reading_text(readings.second) if readings else "",
+                "gospel": clean_reading_text(readings.gospel) if readings else "",
+            }
 
+            return MassReadingResponse(
+                date=date,
+                saint=saint,
+                season=season,
+                season_week=season_week,
+                year=year,
+                readings=readings,
+            )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -4,6 +4,10 @@ services:
     container_name: rysen-backend
     ports:
       - "8000:8000"
+    depends_on:
+      - redis
+    environment:
+    - REDIS_URL= redis://redis:6379
     env_file:
       - backend/.env  
   frontend:
@@ -13,3 +17,9 @@ services:
     ports:
       - "3000:3000"
     container_name: rysen-frontend
+
+  redis:
+    image: redis:7
+    container_name: redis_server
+    ports:
+      - "6379:6379"

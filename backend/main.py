@@ -14,6 +14,23 @@ from db import engine
 # from routers import chat  # Make sure the import path is correct
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
+from apscheduler.schedulers.background import BackgroundScheduler
+import json
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.decorator import cache
+from sqlalchemy.ext.asyncio import AsyncSession
+from crud import get_reading_by_date, save_reading
+import asyncio
+from utils import fetch_daily_data
+from fastapi_cache.backends.redis import RedisBackend
+import redis.asyncio as redis
+from datetime import timezone
+from redis import asyncio as aioredis
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from zoneinfo import ZoneInfo
+
+scheduler = AsyncIOScheduler(timezone=ZoneInfo("Pacific/Kiritimati"))  # Set to Kiritimati time zone
 
 # Initialize Firebase
 cred = credentials.Certificate("ryenapp.json")  # Replace with your service account key
@@ -21,12 +38,25 @@ firebase_admin.initialize_app(cred)
 db = firestore.client()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Load data on startup
+    
+    scheduler.add_job(fetch_daily_data, "interval", seconds=60)
+    # scheduler.add_job(fetch_daily_data, "cron", hour=0, minute=1)
+    scheduler.start()
     # Startup: create tables if they don't exist
     async with engine.begin() as conn:
         await conn.run_sync(models.Base.metadata.create_all)
+
+    # Init Redis cache
+    redis = aioredis.from_url("redis://redis:6379", encoding="utf8", decode_responses=True)
+    FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
+    # redis_backend = RedisBackend(redis.from_url("redis://localhost"))
+    # FastAPICache.init(redis_backend)
+
     yield
+    scheduler.shutdown()
+
 app = FastAPI(title="RYSEN Backend", lifespan=lifespan)
-# app.include_router(chat.router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,7 +101,7 @@ class OnboardingData(BaseModel):
     spiritualMaturity: float  # 1–3
     spiritualGoals: List[str]
     avatar: str  # key from avatarOptions
-    
+
 def verify_firebase_token(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Unauthorized")
