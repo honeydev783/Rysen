@@ -516,7 +516,7 @@ async def get_mass_readings(
             season = readings.season if readings else ""
             season_week = readings.season_week if readings else ""
             year = readings.year if readings else ""
-            readings = {
+            reading = {
                 "first": clean_reading_text(readings.first) if readings else "",
                 "psalm": clean_reading_text(readings.psalm) if readings else "",
                 "second": clean_reading_text(readings.second) if readings else "",
@@ -540,7 +540,7 @@ async def get_mass_readings(
                 season=season,
                 season_week=season_week,
                 year=year,
-                readings=readings,
+                readings=reading,
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

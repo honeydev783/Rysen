@@ -40,8 +40,8 @@ db = firestore.client()
 async def lifespan(app: FastAPI):
     # Load data on startup
     
-    scheduler.add_job(fetch_daily_data, "interval", seconds=60)
-    # scheduler.add_job(fetch_daily_data, "cron", hour=0, minute=1)
+    # scheduler.add_job(fetch_daily_data, "interval", seconds=60)
+    scheduler.add_job(fetch_daily_data, "cron", hour=0, minute=1)
     scheduler.start()
     # Startup: create tables if they don't exist
     async with engine.begin() as conn:
