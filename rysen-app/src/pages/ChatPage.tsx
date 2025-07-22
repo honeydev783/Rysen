@@ -36,7 +36,26 @@ interface ChatSession {
   messages: Message[];
   created_at: string;
 }
+const parseBoldItalicText = (text: string) => {
+  const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
 
+  return parts.map((part, i) => {
+    if (/^\*\*[\s\S]*\*\*$/.test(part)) {
+      const content = part.slice(2, -2); // remove the leading and trailing **
+      return (
+        <span key={i} className="font-bold italic whitespace-pre-line block">
+          {content}
+        </span>
+      );
+    } else {
+      return (
+        <span key={i} className="whitespace-pre-line block">
+          {part}
+        </span>
+      );
+    }
+  });
+};
 const ChatPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -359,7 +378,7 @@ const ChatPage = () => {
                 : "bg-blue-600 text-white self-end text-right ml-auto"
             }`}
           >
-            {msg.sender === "typing" ? typingText : msg.text}
+            {msg.sender === "typing" ? typingText : parseBoldItalicText(msg.text) }
             {msg.sender === "ai" && msg.follow_ups && (
               <div className="flex flex-wrap mt-2 gap-2 animate-rise">
                 {msg.follow_ups.map((q, i) => (
