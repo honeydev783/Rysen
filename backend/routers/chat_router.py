@@ -511,6 +511,7 @@ async def get_mass_readings(
 
         else:
             readings = await get_reading_by_date(date_str, db)
+            print("readings===>", date_str, readings)
             date = readings.date if readings else date_str
             saint = readings.saint if readings else ""
             season = readings.season if readings else ""
