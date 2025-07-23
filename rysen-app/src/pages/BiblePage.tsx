@@ -592,11 +592,14 @@ const BiblePage = () => {
               }}
               className="bg-green-600 text-white px-4 py-2 rounded-xl flex-1"
             >
-              Study This Verse
+              Study This Reading
             </button>
             {showNewReading && (
               <button
-                onClick={() => navigate("/chat")}
+                onClick={() => {
+                  startNewSession(welcomeMessage);
+                  setShowButtons(false);
+                }}
                 className="bg-gray-400 text-white px-4 py-2 rounded-xl flex-1"
               >
                 Select New Reading
