@@ -35,9 +35,13 @@ import { useNavigate } from "react-router-dom";
 interface DonationModalProps {
   // email: string; // user email from auth context
   onClose: () => void;
+  showSkipping: boolean;
 }
 
-export default function DonationModal({onClose}: DonationModalProps) {
+export default function DonationModal({
+  onClose,
+  showSkipping,
+}: DonationModalProps) {
   const navigate = useNavigate();
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>("");
@@ -73,9 +77,19 @@ export default function DonationModal({onClose}: DonationModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl w-full max-w-md shadow-xl">
+      <div className="bg-white dark:bg-gray-800 p-4 rounded-xl w-full max-w-md shadow-xl relative">
+        <div className="flex justify-end">
+          <button
+            onClick={() => {
+              onClose();
+            }}
+            className="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white text-2xl font-semibold leading-none"
+          >
+            &times;
+          </button>
+        </div>
         <h2 className="text-xl font-semibold text-center mb-4">
-          Enjoying Rysen ? Consider donating to support the mission.
+          Would you consider supporting this mission?
         </h2>
 
         <div className="flex flex-wrap gap-2 justify-center mb-4">
@@ -112,19 +126,21 @@ export default function DonationModal({onClose}: DonationModalProps) {
             onChange={(e) => setIsRecurring(e.target.checked)}
             className="mr-2"
           />
-          Make this a recurring monthly donation
+          Make this recurring donation
         </label>
 
         <div className="flex justify-between">
-          <button
-            onClick={onSkip}
-            className="px-4 py-2 bg-gray-300 dark:bg-gray-600 rounded"
-          >
-            Skip
-          </button>
+          {showSkipping && (
+            <button
+              onClick={onSkip}
+              className="bg-gray-400 text-white px-4 py-2 rounded-xl flex-1"
+            >
+              Skip
+            </button>
+          )}
           <button
             onClick={handleDonate}
-            className="px-4 py-2 bg-indigo-600 text-white rounded"
+            className="bg-green-600 text-white px-4 py-2 rounded-xl flex-1"
             disabled={loading}
           >
             {loading ? "Redirecting..." : "Donate"}

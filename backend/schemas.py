@@ -35,3 +35,14 @@ class FeedbackIn(BaseModel):
     message_id: UUID
     reaction: str
     user_email: str
+
+class NewReadingIn(BaseModel):
+    chat_session_id: UUID
+    reading_title: str
+    scripture_reference: str
+    sender: str
+    text: str
+    profile: UserProfile
+    date: str
+    
+    

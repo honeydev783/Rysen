@@ -314,7 +314,7 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white">
+    <div className="min-h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white">
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
         <h1 className="text-xl font-semibold">RYSEN</h1>
         <div className="flex items-center space-x-4">
@@ -392,7 +392,7 @@ const ChatPage = () => {
                 ))}
               </div>
             )}
-            {msg.sender === "ai" && (
+            {msg.sender === "ai" &&  idx !== 0 && (
               <FeedbackIcons
                 msg={msg}
                 handleFeedback={handleFeedback}
@@ -448,7 +448,7 @@ const ChatPage = () => {
           <Mic className="text-white" />
         </button>
       </footer>
-      <BottomBar />
+      <BottomBar handleBibleButtonClick = {() => navigate('/bible')} />
     </div>
   );
 };

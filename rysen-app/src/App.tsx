@@ -28,7 +28,7 @@ function AppContent() {
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [showiOSGuide, setShowiOSGuide] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
+  const [showSkipping, setShowSkipping] = useState(true);
   // Handle install prompts
   useEffect(() => {
     const isStandalone =
@@ -131,7 +131,12 @@ function AppContent() {
         </div>
       )}
 
-      {showDonation && <DonationModal onClose={() => setShowDonation(false)} />}
+      {showDonation && (
+        <DonationModal
+          onClose={() => setShowDonation(false)}
+          showSkipping={showSkipping}
+        />
+      )}
 
       <Routes>
         <Route path="/signin" element={<SigninPage />} />
@@ -180,7 +185,10 @@ function AppContent() {
           path="/settings"
           element={
             <ProtectedRoute>
-              <SettingsPage showDonation={() => setShowDonation(true)} />
+              <SettingsPage
+                showDonation={() => setShowDonation(true)}
+                hideSkipping={() => setShowSkipping(false)}
+              />
             </ProtectedRoute>
           }
         />

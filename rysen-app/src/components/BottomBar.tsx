@@ -10,7 +10,10 @@ import {
   BookOpen,
 } from "lucide-react";
 import { FaPrayingHands } from "react-icons/fa";
-export default function BottomBar() {
+interface BottomBarProps {
+  handleBibleButtonClick: () => void;
+}
+const BottomBar  = ({handleBibleButtonClick}: BottomBarProps) => {
   const navigate = useNavigate();
   return (
     <div>
@@ -22,7 +25,7 @@ export default function BottomBar() {
         <div className="flex flex-col items-center cursor-pointer hover:text-blue-600 transition-colors">
           <BookPlus
             className="w-6 h-6 mb-1"
-            onClick={() => navigate("/bible")}
+            onClick={handleBibleButtonClick}
           />
           <span className="text-xs">Bible</span>
         </div>
@@ -37,3 +40,5 @@ export default function BottomBar() {
     </div>
   );
 }
+
+export default BottomBar;

@@ -141,6 +141,9 @@ const BiblePage = () => {
   });
   const [showButtons, setShowButtons] = useState(false);
   const [showNewReading, setShowNewReading] = useState(false);
+  const [currentVerse, setCurrentVerse] = useState("");
+  const [currentVerseTitle, setCurrentVerseTitle] = useState("");
+
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
@@ -381,6 +384,8 @@ const BiblePage = () => {
     }
   };
   const handleScriptureClick = async (title: string, scripture: string) => {
+    setCurrentVerse(scripture);
+    setCurrentVerseTitle(title);
     const today = new Date().toLocaleDateString("en-CA");
     setShowReadings(false);
     setMessages([]);
@@ -436,6 +441,67 @@ const BiblePage = () => {
     }
   };
 
+  const handleNewReading = async () => {
+    const today = new Date().toLocaleDateString("en-CA");
+    setMessages([]);
+    const messageText = currentVerseTitle + ":" + currentVerse;
+    const userMsg: Message = { sender: "user", text: messageText };
+    setIsTyping(true);
+    const typingMsg: Message = { sender: "typing", text: "..." };
+    setMessages((prev) => [...prev, userMsg, typingMsg]);
+    const key = `study:${today}:${currentVerseTitle}`;
+    try {
+      if (localStorage.getItem(key)) {
+        const localData = JSON.parse(localStorage.getItem(key) || "{}");
+        console.log("localData===>", localData);
+        const aiReply: Message = {
+          id: localData.id,
+          sender: localData.sender,
+          text: localData.text,
+          timestamp: localData.timestamp,
+        };
+        setMessages((prev) => {
+          const withoutTyping = prev.filter((m) => m.sender !== "typing");
+          return [...withoutTyping, aiReply];
+        });
+      } else {
+        const res = await api.post("/api/bible/reading", {
+          reading_title: currentVerseTitle,
+          scripture_reference: currentVerse,
+          chat_session_id: currentSession?.id,
+          sender: "user",
+          text: messageText,
+          date: today,
+          profile: userProfile,
+        });
+        const aiReply: Message = {
+          id: res.data.id,
+          sender: res.data.sender,
+          text: res.data.text,
+          timestamp: res.data.timestamp,
+        };
+        localStorage.setItem(key, JSON.stringify(res.data));
+        // Replace typing with real reply
+        setMessages((prev) => {
+          const withoutTyping = prev.filter((m) => m.sender !== "typing");
+          return [...withoutTyping, aiReply];
+        });
+        console.log("Scripture response:", res.data);
+      }
+    } catch (err) {
+      console.error("Failed to handle scripture click", err);
+    } finally {
+      setIsTyping(false);
+      setShowButtons(true);
+      setShowNewReading(false);
+    }
+  };
+
+  const handleBibleButtonClick = () => {
+    startNewSession(welcomeMessage);
+    setShowButtons(false);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white">
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
@@ -467,7 +533,7 @@ const BiblePage = () => {
               ? typingText
               : parseBoldItalicText(msg.text)}
 
-            {msg.sender === "ai" && (
+            {msg.sender === "ai" && idx !== 0 && (
               <FeedbackIcons
                 msg={msg}
                 handleFeedback={handleFeedback}
@@ -491,9 +557,10 @@ const BiblePage = () => {
             </div>
 
             {/* Reading Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4"> */}
+            <div className="flex flex-wrap justify-center gap-3">
               <button
-                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleScriptureClick(
                     "First Reading",
@@ -510,7 +577,7 @@ const BiblePage = () => {
               </button>
               {massReadings?.readings.second && (
                 <button
-                  className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                  className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
                   onClick={() =>
                     handleScriptureClick(
                       "Second Reading",
@@ -528,7 +595,7 @@ const BiblePage = () => {
               )}
 
               <button
-                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleScriptureClick(
                     "Responsorial Psalm",
@@ -545,7 +612,7 @@ const BiblePage = () => {
               </button>
 
               <button
-                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleScriptureClick(
                     "Gospel Reading",
@@ -562,7 +629,7 @@ const BiblePage = () => {
               </button>
 
               <button
-                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleSaintClick(
                     "Saint of the Day ",
@@ -582,34 +649,37 @@ const BiblePage = () => {
         )}
       </div>
 
-      <footer className="p-4 border-t dark:border-gray-800 flex gap-2">
-        {showButtons && (
-          <>
-            <button
-              onClick={() => {
-                startNewSession(welcomeMessage);
-                setShowButtons(false);
-              }}
-              className="bg-green-600 text-white px-4 py-2 rounded-xl flex-1"
-            >
-              Study This Reading
-            </button>
-            {showNewReading && (
-              <button
-                onClick={() => {
-                  startNewSession(welcomeMessage);
-                  setShowButtons(false);
-                }}
-                className="bg-gray-400 text-white px-4 py-2 rounded-xl flex-1"
-              >
-                Select New Reading
-              </button>
-            )}
-          </>
-        )}
+      <footer className="p-4 border-t dark:border-gray-800">
+        <div className="flex flex-wrap justify-center gap-2">
+          {showButtons && (
+            <>
+              {showNewReading && (
+                <button
+                  onClick={() => {
+                    handleNewReading();
+                  }}
+                  className="w-full lg:w-1/2 bg-green-600 text-white px-4 py-2 rounded-xl"
+                >
+                  Study This Reading
+                </button>
+              )}
+              {!showNewReading && (
+                <button
+                  onClick={() => {
+                    startNewSession(welcomeMessage);
+                    setShowButtons(false);
+                  }}
+                  className="w-full lg:w-1/2 bg-gray-400 text-white px-4 py-2 rounded-xl"
+                >
+                  Close
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </footer>
 
-      <BottomBar />
+      <BottomBar handleBibleButtonClick={handleBibleButtonClick} />
     </div>
   );
 };

@@ -343,9 +343,9 @@ async def generate_saint_reading(
 
             Format:
             1. Start with the saint's name in **bold**.
-            2. A 2-sentence overview of who the saint is and why they're significant in **bold**.
-            3. 3 sentences about their time period, origin, and historical context in **bold**.
-            4. 3–4 sentences about their key works, teachings, and notable quotes in **bold**.
+            2. A 2-sentence overview of who the saint is and why they're significant in normal text not in bold.
+            3. 3 sentences about their time period, origin, and historical context in normal text not in bold.
+            4. 3–4 sentences about their key works, teachings, and notable quotes in normal text not in bold.
             5. A 3–4 sentence prayer of intercession in **bold**. For Pio and Therese, reference Mary. For Kim and Dan, include patronage or a relevant saint. End with: “Saint [Name], pray for us. Amen.” in **bold**
 
             Saint: {request.saint_name}
@@ -545,6 +545,120 @@ async def get_mass_readings(
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/bible/reading")
+async def study_bible(
+    payload: schemas.NewReadingIn, db: AsyncSession = Depends(get_db)
+):
+    # Save user message
+    key = f"reading:{payload.date}: {payload.reading_title}"
+    encrypted = utils.encrypt_text(payload.text)
+    user_msg = models.Message(
+        id=uuid4(),
+        chat_session_id=payload.chat_session_id,
+        sender=payload.sender,
+        text=encrypted,
+    )
+    db.add(user_msg)
+    await db.commit()
+    try:
+        cached = await utils.get_cache(key)
+        if cached:
+            ai_msg = models.Message(
+                id=uuid4(),
+                chat_session_id=payload.chat_session_id,
+                sender="ai",
+                text=utils.encrypt_text(cached),
+            )
+            db.add(ai_msg)
+            await db.commit()
+            return {
+                "id": str(ai_msg.id),
+                "sender": "ai",
+                "text": cached,
+                "timestamp": datetime.now().isoformat(),
+            }
+        else:
+            user_profile = payload.profile
+            spiritual_maturity = utils.get_spirituality_stage(
+                user_profile.spiritual_maturity
+            )
+            spiritual_goals = ", ".join(user_profile.spiritual_goals)
+            prompt = f"""
+            You are an AI spiritual guide for a Catholic faith app called RYSEN. The user has selected the “Study Verse” button. Your role is to guide them through a structured Catholic Bible study based on the selected verse.
+
+            The verse is: **{payload.scripture_reference}**
+
+            The user’s profile:
+            - Age Range: {user_profile.age_range}
+            - Gender: {user_profile.sex}
+            - Life Stage: {user_profile.life_stage}
+            - Spiritual Maturity (1–5): {spiritual_maturity}
+            - Spiritual Goals: {spiritual_goals}
+            - Avatar Voice: {user_profile.avatar}
+
+            Follow these precise instructions:
+
+            1. Begin with the **verse title in bold** (e.g., **Matthew 10:12-15**) on its own line, then leave a blank line.
+
+            2. Write 1–2 sentences summarizing what this reading is about (without labeling this section).
+
+            3. Provide a 3-part Bible study, formatted for readability and styled with spacing, bold, and italics as appropriate:
+
+            **Biblical Context** – In 2–3 sentences, describe what is happening just before or around this verse in the Bible. Focus on narrative grounding (not thematic interpretation).
+
+            **Theological Study** –
+            - Offer historical context *only if* it significantly clarifies the verse’s meaning.
+            - Include any relevant cross-references to other Scriptures (e.g., Old Testament connections, Christ’s fulfillment of prophecy).
+            - Add 1–2 sentences from theologians, Saints, or Bible scholars, clearly attributed (e.g., *St. Augustine wrote...*).
+            - Include insights from the Catechism of the Catholic Church or Church teaching *only if directly relevant*, and do not include paragraph numbers.
+
+            **Reflection** – Offer a spiritual reflection with practical insights for life and prayer, subtly tailored to the user’s stage and spiritual goals without stating them explicitly. End this section with a short, simple challenge or encouragement for spiritual growth (e.g., “Take five minutes today to...”), ensuring it's practical and compassionate.
+
+            4. After one line space, write a short closing prayer of 1–2 sentences. Begin this with “**Pray –**” and write it for the user to say privately. Do not include human-like phrases or imply that the AI is participating in prayer.
+
+            5. Use the tone and voice of the user’s avatar:
+            - **Pio**: Compassionate, direct, reverent, emphasizing mercy, repentance, and the Cross.
+            - **Therese**: Gentle, simple, childlike, focused on love and small acts of faith.
+            - **Kim**: Passionate, relatable, energetic, showing how Scripture fits daily life.
+            - **Dan**: Calm, practical, fatherly, grounding Scripture in everyday duties and faith.
+
+            Subtly reflect this avatar tone across the entire study without overdoing it.
+
+            Only include direct Scripture quotes (e.g., “**The Kingdom of Heaven is at hand**”) in **bold text**, and ensure all teaching remains faithful to Catholic doctrine.
+
+            If the verse is invalid or lacks sufficient material for reflection, return a gentle message suggesting the user choose a different verse, along with a short general prayer asking for wisdom in studying Scripture.
+            """
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": prompt,
+                    },
+                ],
+                temperature=0.8,
+            )
+            ai_response = response.choices[0].message.content
+            ai_msg = models.Message(
+                id=uuid4(),
+                chat_session_id=payload.chat_session_id,
+                sender="ai",
+                text=utils.encrypt_text(ai_response),
+            )
+            db.add(ai_msg)
+            await db.commit()
+            await utils.set_cache(key, ai_response)
+            return {
+                "id": str(ai_msg.id),
+                "sender": "ai",
+                "text": ai_response,
+                "timestamp": datetime.now().isoformat(),
+            }
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Deletion failed: {str(e)}")
 
 
 @router.post("/chat/message")

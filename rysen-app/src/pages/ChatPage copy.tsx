@@ -289,7 +289,7 @@ const ChatPage = ({ showDonation }: ChatPageProps) => {
   };
 
   return (
-    <div className="h-screen bg-white dark:bg-black text-black dark:text-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white flex flex-col">
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
         <h1 className="text-xl font-semibold">Rysen</h1>
         <div className="flex items-center space-x-4">

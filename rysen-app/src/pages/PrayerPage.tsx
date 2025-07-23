@@ -306,7 +306,7 @@ const PrayerPage = () => {
               ? typingText
               : parseBoldItalicText(msg.text)}
 
-            {msg.sender === "ai" && (
+            {msg.sender === "ai" && idx !== 0 && (
               <FeedbackIcons
                 msg={msg}
                 handleFeedback={handleFeedback}
@@ -391,7 +391,7 @@ const PrayerPage = () => {
         )}
       </footer>
 
-      <BottomBar />
+      <BottomBar handleBibleButtonClick = {() => navigate('/bible')} />
     </div>
   );
 };
