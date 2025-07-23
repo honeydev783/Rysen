@@ -217,19 +217,19 @@ const BiblePage = () => {
       // const today = new Date().toISOString().split("T")[0];
       const today = new Date().toLocaleDateString("en-CA");
       console.log("today", today);
-      // if (localStorage.getItem(today)) {
-      //   console.log(
-      //     "readings==>",
-      //     JSON.parse(localStorage.getItem(today) || "{}")
-      //   );
-      //   setMassReadings(JSON.parse(localStorage.getItem(today) || "{}"));
-      //   setShowReadings(true);
-      // } else {
+      if (localStorage.getItem(today)) {
+        console.log(
+          "readings==>",
+          JSON.parse(localStorage.getItem(today) || "{}")
+        );
+        setMassReadings(JSON.parse(localStorage.getItem(today) || "{}"));
+        setShowReadings(true);
+      } else {
         const res = await api.get("/api/mass-readings?date_str=" + today);
         setMassReadings(res.data);
         localStorage.setItem(today, JSON.stringify(res.data));
         setShowReadings(true);
-      // }
+      }
 
       //   console.log("Mass readings response:===>", res, res.data);
     } catch (err) {
