@@ -20,6 +20,7 @@ import json
 import html
 from zoneinfo import ZoneInfo
 from models import PastoralMemory
+
 AES_KEY = os.getenv("AES_SECRET_KEY").encode()
 fernet = Fernet(AES_KEY)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -97,7 +98,10 @@ async def log_analytics(db, user_id: str, event: str, data: dict):
 
 async def fetch_daily_data(db: AsyncSession = Depends(get_db)):
     today = datetime.now(ZoneInfo("Pacific/Kiritimati")).date()
-    print(f"Fetching daily data for {str(today)}", datetime.now(ZoneInfo("Pacific/Kiritimati")))
+    print(
+        f"Fetching daily data for {str(today)}",
+        datetime.now(ZoneInfo("Pacific/Kiritimati")),
+    )
     key = f"mass:{today}"
     cached = await get_cache(key)
     print(f"Cached data for {key}: {cached}")
@@ -267,6 +271,7 @@ async def set_reading_data(date_str: str, reading_title: str, scripture_referenc
     except Exception as e:
         raise RuntimeError(f"Failed to fetch first reading data: {e}")
 
+
 async def set_saint_data(date_str: str, saint_name: str):
     try:
         prompt = f"""
@@ -306,6 +311,7 @@ async def set_saint_data(date_str: str, saint_name: str):
     except Exception as e:
         raise RuntimeError(f"Failed to fetch saint data: {e}")
 
+
 async def set_cache(key: str, value: str, expire: int = 60 * 60 * 48):
     """
     Manually set a cache value.
@@ -328,14 +334,91 @@ async def get_cache(key: str):
 
 
 async def check_openai_moderation(text: str) -> bool:
-    response = client.moderations.create(
-        model="omni-moderation-latest",
-        input=text
-    )
+    response = client.moderations.create(model="omni-moderation-latest", input=text)
     return response.results[0].flagged
 
+
 async def analyze_and_store_themes(user_id: str, text: str, db: AsyncSession):
-    PASTORAL_KEYWORDS = ["fear", "trust", "forgiveness", "grief", "hope", "suffering", "joy", "love", "mercy", "healing"]
+    PASTORAL_KEYWORDS = [
+        "fear",
+        "trust",
+        "forgiveness",
+        "grief",
+        "hope",
+        "suffering",
+        "joy",
+        "love",
+        "mercy",
+        "healing",
+        "peace",
+        "faith",
+        "repentance",
+        "gratitude",
+        "humility",
+        "patience",
+        "courage",
+        "compassion",
+        "loneliness",
+        "despair",
+        "temptation",
+        "doubt",
+        "shame",
+        "guilt",
+        "anger",
+        "envy",
+        "pride",
+        "confession",
+        "eucharist",
+        "adoration",
+        "rosary",
+        "prayer",
+        "sacrament",
+        "lectio divina",
+        "divine mercy",
+        "fasting",
+        "penance",
+        "intercession",
+        "blessing",
+        "worship",
+        "family",
+        "friendship",
+        "marriage",
+        "vocation",
+        "community",
+        "service",
+        "charity",
+        "conversion",
+        "discernment",
+        "perseverance",
+        "detachment",
+        "spiritual dryness",
+        "zeal",
+        "obedience",
+        "faithfulness",
+        "trust in providence",
+        "purity",
+        "simplicity",
+        "mary",
+        "saints",
+        "intercession of saints",
+        "self-worth",
+        "identity",
+        "purpose",
+        "calling",
+        "mission",
+        "strength",
+        "light",
+        "freedom",
+        "renewal",
+        "salvation",
+        "redemption",
+        "truth",
+        "wisdom",
+        "understanding",
+        "discouragement",
+        "vulnerability",
+        "acceptance",
+    ]
     prompt = (
         f"From this text, extract up to 2 pastoral themes relevant to Catholic spirituality. "
         f"Choose only from this list: {', '.join(PASTORAL_KEYWORDS)}. "
@@ -345,9 +428,12 @@ async def analyze_and_store_themes(user_id: str, text: str, db: AsyncSession):
     response = client.chat.completions.create(
         model="gpt-4o",
         messages=[
-            {"role": "system", "content": "You are an assistant that extracts spiritual themes."},
-            {"role": "user", "content": prompt}
-        ]
+            {
+                "role": "system",
+                "content": "You are an assistant that extracts spiritual themes.",
+            },
+            {"role": "user", "content": prompt},
+        ],
     )
     raw = response.choices[0].message.content.lower()
     extracted = [t.strip() for t in raw.split(",") if t.strip() in PASTORAL_KEYWORDS]
@@ -406,4 +492,3 @@ async def analyze_and_store_themes(user_id: str, text: str, db: AsyncSession):
     await db.commit()
 
     return merged
-
