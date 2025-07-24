@@ -10,6 +10,8 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from db import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+from sqlalchemy import asc
 from crud import get_reading_by_date, save_reading
 import httpx, bs4
 from fastapi_cache import FastAPICache
@@ -17,6 +19,7 @@ from db import AsyncSessionLocal
 import json
 import html
 from zoneinfo import ZoneInfo
+from models import PastoralMemory
 AES_KEY = os.getenv("AES_SECRET_KEY").encode()
 fernet = Fernet(AES_KEY)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -322,3 +325,85 @@ async def get_cache(key: str):
     if cached is not None:
         return json.loads(cached)
     return None
+
+
+async def check_openai_moderation(text: str) -> bool:
+    response = client.moderations.create(
+        model="omni-moderation-latest",
+        input=text
+    )
+    return response.results[0].flagged
+
+async def analyze_and_store_themes(user_id: str, text: str, db: AsyncSession):
+    PASTORAL_KEYWORDS = ["fear", "trust", "forgiveness", "grief", "hope", "suffering", "joy", "love", "mercy", "healing"]
+    prompt = (
+        f"From this text, extract up to 2 pastoral themes relevant to Catholic spirituality. "
+        f"Choose only from this list: {', '.join(PASTORAL_KEYWORDS)}. "
+        f"Return them as a comma-separated list, e.g., 'fear, trust'.\n"
+        f"Text: '{text}'"
+    )
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are an assistant that extracts spiritual themes."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    raw = response.choices[0].message.content.lower()
+    extracted = [t.strip() for t in raw.split(",") if t.strip() in PASTORAL_KEYWORDS]
+    print("extracted theme===>", extracted)
+    if not extracted:
+        return []
+
+    # Load existing themes
+    # result = await db.execute(
+    #     select(PastoralMemory).where(PastoralMemory.user_id == user_id).order_by(asc(PastoralMemory.updated_at))
+    # )
+    # existing = result.scalars().all()
+    # print("existing===>", existing)
+    # # Add new ones
+    # for theme in extracted:
+    #     if not any(t.theme == theme for t in existing):
+    #         db.add(PastoralMemory(user_id=user_id, theme=theme))
+    # await db.commit()
+
+    # # Re-fetch
+    # result = await db.execute(
+    #     select(PastoralMemory).where(PastoralMemory.user_id == user_id).order_by(asc(PastoralMemory.updated_at))
+    # )
+    # updated = result.scalars().all()
+
+    # # Keep only latest 3
+    # if len(updated) > 3:
+    #     to_delete = updated[:len(updated)-3]
+    #     for theme_obj in to_delete:
+    #         await db.delete(theme_obj)
+    #     await db.commit()
+
+    # return [t.theme for t in updated[-3:]]
+    # Fetch existing PastoralMemory row for the user
+    result = await db.execute(
+        select(PastoralMemory).where(PastoralMemory.user_id == user_id)
+    )
+    existing = result.scalars().first()
+
+    if existing:
+        # Merge extracted themes into existing ones
+        merged = existing.themes or []
+        for theme in extracted:
+            if theme not in merged:
+                merged.append(theme)
+        # Keep only latest 3
+        merged = merged[-3:]
+        existing.themes = merged
+        existing.updated_at = datetime.now()
+    else:
+        # No record yet: create new row with extracted themes (up to 3)
+        merged = extracted[:3]
+        new_row = PastoralMemory(user_id=user_id, themes=merged)
+        db.add(new_row)
+
+    await db.commit()
+
+    return merged
+

@@ -204,6 +204,8 @@ const PrayerPage = () => {
         sender: "user",
         text: message,
         profile: userProfile,
+        user_email: user?.email,
+        user_id: user?.uid
       });
       console.log("Prayer API response:===>", res.data);
       const aiReply: Message = {

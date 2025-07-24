@@ -202,6 +202,8 @@ const ChatPage = () => {
         sender: "user",
         text: message,
         profile: userProfile,
+        user_email: user?.email,
+        user_id: user?.uid
       });
 
       const aiReply: Message = {

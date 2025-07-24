@@ -29,6 +29,8 @@ class NewMessageIn(BaseModel):
     chat_session_id: UUID
     sender: str
     text: str
+    user_email: str
+    user_id: str
     profile: UserProfile
 
 class FeedbackIn(BaseModel):

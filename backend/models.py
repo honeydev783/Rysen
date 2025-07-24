@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Text, ForeignKey, Boolean, TIMESTAMP, func, Date
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 import uuid
 
@@ -52,3 +52,11 @@ class MassReading(Base):
     gospel = Column(String)
     psalm = Column(String)
     second = Column(String, nullable=True)
+
+class PastoralMemory(Base):
+    __tablename__ = "pastoral_memory"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(String, nullable=False, unique=True)
+    themes = Column(ARRAY(String))  # up to 3 active themes
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
