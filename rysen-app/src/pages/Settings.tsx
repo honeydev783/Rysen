@@ -394,20 +394,20 @@ export default function SettingsPage({
           {activeSection === "privacy" && (
             <div className="space-y-3">
               <button
-                onClick={() => openLink("/terms")}
+                onClick={() => navigate("/terms")}
                 className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
               >
                 RYSEN - Terms of Service{" "}
                 <ChevronRightIcon className="w-5 h-5" />
               </button>
               <button
-                onClick={() => openLink("/privacy")}
+                onClick={() => navigate("/privacy")}
                 className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
               >
                 RYSEN - Privacy Policy <ChevronRightIcon className="w-5 h-5" />
               </button>
               <button
-                onClick={() => openLink("/about")}
+                onClick={() => navigate("/about")}
                 className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
               >
                 RYSEN - About Us <ChevronRightIcon className="w-5 h-5" />

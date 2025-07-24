@@ -340,19 +340,19 @@ const BiblePage = () => {
     const typingMsg: Message = { sender: "typing", text: "..." };
     setMessages((prev) => [...prev, userMsg, typingMsg]);
     try {
-      if (localStorage.getItem(key)) {
-        const localData = JSON.parse(localStorage.getItem(key) || "{}");
-        const aiReply: Message = {
-          id: localData.id,
-          sender: localData.sender,
-          text: localData.text,
-          timestamp: localData.timestamp,
-        };
-        setMessages((prev) => {
-          const withoutTyping = prev.filter((m) => m.sender !== "typing");
-          return [...withoutTyping, aiReply];
-        });
-      } else {
+      // if (localStorage.getItem(key)) {
+      //   const localData = JSON.parse(localStorage.getItem(key) || "{}");
+      //   const aiReply: Message = {
+      //     id: localData.id,
+      //     sender: localData.sender,
+      //     text: localData.text,
+      //     timestamp: localData.timestamp,
+      //   };
+      //   setMessages((prev) => {
+      //     const withoutTyping = prev.filter((m) => m.sender !== "typing");
+      //     return [...withoutTyping, aiReply];
+      //   });
+      // } else {
         const res = await api.post("/api/bible/saint", {
           saint_name: saint,
           chat_session_id: currentSession?.id,
@@ -374,7 +374,7 @@ const BiblePage = () => {
           return [...withoutTyping, aiReply];
         });
         console.log("Scripture response:", res.data);
-      }
+      // }
     } catch (err) {
       console.error("Failed to handle scripture click", err);
     } finally {
