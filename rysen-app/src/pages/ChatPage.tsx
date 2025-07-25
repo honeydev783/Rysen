@@ -36,6 +36,76 @@ interface ChatSession {
   messages: Message[];
   created_at: string;
 }
+
+interface WelcomeMessages {
+  [avatar: string]: string[];
+}
+
+interface placeHolders {
+  [avatar: string]: string[];
+}
+
+const welcomeMessages: WelcomeMessages = {
+  Pio: [
+    "Hello and welcome. This space is here if you want to share or explore what’s on your heart or mind.",
+    "Greetings. Feel free to share whatever is weighing on you or any questions you have.",
+    "Welcome. You’re invited to reflect or seek clarity on what matters most to you.",
+  ],
+  Thérèse: [
+    "Hello and welcome. This is a gentle place to share what’s on your heart, big or small.",
+    "Greetings. You can use this space to express whatever you’re thinking or feeling.",
+    "Welcome. Feel free to speak openly here about anything you want to explore or understand better.",
+  ],
+  Kim: [
+    "Hello and welcome! This is a space to talk through what’s on your mind or life.",
+    "Hi there! Use this space to share your thoughts or questions whenever you need.",
+    "Greetings! Glad you’re here. Feel free to explore what’s important to you today.",
+  ],
+  Dan: [
+    "Hello and welcome. This is a space to share your thoughts or questions about everyday life.",
+    "Greetings. Use this space whenever you want to reflect on what’s happening or seek some clarity.",
+    "Welcome. You’re invited to share here whatever you need to think through or understand better.",
+  ],
+};
+
+const placeHolders: placeHolders = {
+  Pio: [
+    "What’s on your heart today?",
+    "What would you like to talk about?",
+    "What’s been on your mind lately?",
+  ],
+  Thérèse: [
+    "What’s quietly resting on your heart?",
+    "What would you like to share today?",
+    "What’s been on your mind or heart?",
+  ],
+  Kim: [
+    "What’s been on your mind lately?",
+    "What’s on your mind right now?",
+    "What’s something you want to discuss?",
+  ],
+  Dan: [
+    "What’s on your mind today?",
+    "What’s been on your mind lately?",
+    "What would you like to talk about?",
+  ],
+};
+
+const getRandomWelcomeMessage = (avatarType: string) => {
+  const messages = welcomeMessages[avatarType];
+  const index = Math.floor(Math.random() * messages.length);
+  console.log("randome number1===>", index);
+  return messages[index];
+};
+
+const getRamdomPlaceholder = (avatarType: string) => {
+  const holders = placeHolders[avatarType];
+  const index = Math.floor(Math.random() * holders.length);
+  console.log("randome number2===>", index);
+
+  return holders[index];
+};
+
 const parseBoldItalicText = (text: string) => {
   const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
 
@@ -73,7 +143,8 @@ const ChatPage = () => {
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const pendingFollowUpRef = useRef<string | null>(null);
-
+  const [welcomeMessage, setWelcomeMsg] = useState(null);
+  const [enable, setEnable] = useState(false);
   const [userProfile, setUserProfile] = useState({
     name: "",
     age_range: "",
@@ -83,6 +154,9 @@ const ChatPage = () => {
     spiritual_goals: [] as string[],
     avatar: "",
   });
+  const [placeholder, setPlaceholder] = useState(
+    "What would you like to talk about?"
+  );
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
@@ -96,6 +170,7 @@ const ChatPage = () => {
       if (snap.exists()) {
         setUserProfile({ ...userProfile, ...snap.data() });
       }
+      setEnable(true);
     };
 
     fetchUserSettings();
@@ -116,8 +191,11 @@ const ChatPage = () => {
   }, [isTyping]);
 
   useEffect(() => {
-    if (user?.uid) loadSessions();
-  }, [user]);
+    if (enable) {
+      console.log("user==========================>", user)
+      loadSessions();
+    }
+  }, [enable]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -161,9 +239,14 @@ const ChatPage = () => {
 
   const startNewSession = async () => {
     setMessage("");
+    const msg = getRandomWelcomeMessage(userProfile.avatar);
+    console.log("welcomemessage===>", msg);
+    setWelcomeMsg(msg);
+    const plasceholder = getRamdomPlaceholder(userProfile.avatar);
+    setPlaceholder(plasceholder);
     const welcomeMsg: Message = {
       sender: "ai",
-      text: "Welcome to RYSEN, your spiritual companion. How may I accompany you today?",
+      text: msg,
     };
     try {
       const res = await api.post("/api/chat/session", {
@@ -203,7 +286,7 @@ const ChatPage = () => {
         text: message,
         profile: userProfile,
         user_email: user?.email,
-        user_id: user?.uid
+        user_id: user?.uid,
       });
 
       const aiReply: Message = {
@@ -380,7 +463,9 @@ const ChatPage = () => {
                 : "bg-blue-600 text-white self-end text-right ml-auto"
             }`}
           >
-            {msg.sender === "typing" ? typingText : parseBoldItalicText(msg.text) }
+            {msg.sender === "typing"
+              ? typingText
+              : parseBoldItalicText(msg.text)}
             {msg.sender === "ai" && msg.follow_ups && (
               <div className="flex flex-wrap mt-2 gap-2 animate-rise">
                 {msg.follow_ups.map((q, i) => (
@@ -394,7 +479,7 @@ const ChatPage = () => {
                 ))}
               </div>
             )}
-            {msg.sender === "ai" &&  idx !== 0 && (
+            {msg.sender === "ai" && idx !== 0 && (
               <FeedbackIcons
                 msg={msg}
                 handleFeedback={handleFeedback}
@@ -431,7 +516,7 @@ const ChatPage = () => {
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="How may I accompany you today?"
+          placeholder={placeholder}
           className="flex-1 rounded-xl px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"
         />
         <button
@@ -450,7 +535,7 @@ const ChatPage = () => {
           <Mic className="text-white" />
         </button>
       </footer>
-      <BottomBar handleBibleButtonClick = {() => navigate('/bible')} />
+      <BottomBar handleBibleButtonClick={() => navigate("/bible")} />
     </div>
   );
 };

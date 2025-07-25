@@ -795,7 +795,20 @@ async def send_message(
         Do NOT include ```json or ``` in the output.
     """
     print("Prompt for AI:", prompt)
-    ai_response = await utils.call_llm(prompt)
+    response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a faithful Catholic scripture companion.",
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                temperature=0.9,
+            )
+
+    ai_response = response.choices[0].message.content
+    # ai_response = await utils.call_llm(prompt)
     try:
         parsed = json.loads(ai_response)
         ai_text = parsed.get("answer", "").strip()

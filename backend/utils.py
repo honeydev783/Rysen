@@ -78,7 +78,7 @@ def decrypt_text(cipher: str) -> str:
 
 async def call_llm(prompt: str) -> str:
     response = client.chat.completions.create(
-        model="gpt-4o", messages=[{"role": "system", "content": prompt}]
+        model="gpt-4o", messages=[{"role": "system", "content": prompt}],
     )
     return response.choices[0].message.content.strip()
 
