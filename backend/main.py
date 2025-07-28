@@ -135,7 +135,7 @@ async def signup(data: TokenRequest):
             "uid": uid,
             "name": name,
             "email": email,
-            "login_count": 1,
+            "login_count": 0,
             "onboarded": False,
             "created_at": datetime.utcnow(),
         }
@@ -147,7 +147,7 @@ async def signup(data: TokenRequest):
             "uid": uid,
             "name": name,
             "email": email,
-            "login_count": 1,
+            "login_count": 0,
             "onboarded": False,
         }
 
