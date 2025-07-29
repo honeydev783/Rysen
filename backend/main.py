@@ -98,7 +98,7 @@ class OnboardingData(BaseModel):
     ageRange: str
     sex: str
     lifeStage: str
-    spiritualMaturity: float  # 1–3
+    spiritualMaturity: str  # 1–3
     spiritualGoals: List[str]
     avatar: str  # key from avatarOptions
 

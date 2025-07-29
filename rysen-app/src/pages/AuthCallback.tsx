@@ -37,7 +37,7 @@
 //       } catch (err) {
 //         console.error("Google login failed:", err);
 //         toast.error("Login failed");
-//         navigate("/signin");
+//         navigate("/home");
 //       }
 //     };
 
@@ -67,7 +67,7 @@ export default function AuthCallback() {
 
         if (!result || !result.user) {
           toast.error("No user info from Google");
-          return navigate("/signin");
+          return navigate("/home");
         }
 
         const idToken = await result.user.getIdToken();
@@ -87,7 +87,7 @@ export default function AuthCallback() {
       } catch (err) {
         console.error("Auth callback error:", err);
         toast.error("Login failed.");
-        navigate("/signin");
+        navigate("/home");
       }
     };
 

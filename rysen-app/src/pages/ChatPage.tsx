@@ -21,6 +21,8 @@ import { useAuth } from "../context/AuthContext";
 import FeedbackIcons from "../components/FeedbackIcons";
 import { doc, getDoc } from "firebase/firestore";
 import BottomBar from "../components/BottomBar";
+import { FaTelegramPlane } from "react-icons/fa";
+
 interface Message {
   id?: string;
   sender: "user" | "ai" | "typing";
@@ -36,76 +38,6 @@ interface ChatSession {
   messages: Message[];
   created_at: string;
 }
-
-interface WelcomeMessages {
-  [avatar: string]: string[];
-}
-
-interface placeHolders {
-  [avatar: string]: string[];
-}
-
-const welcomeMessages: WelcomeMessages = {
-  Pio: [
-    "Hello and welcome. This space is here if you want to share or explore what’s on your heart or mind.",
-    "Greetings. Feel free to share whatever is weighing on you or any questions you have.",
-    "Welcome. You’re invited to reflect or seek clarity on what matters most to you.",
-  ],
-  Thérèse: [
-    "Hello and welcome. This is a gentle place to share what’s on your heart, big or small.",
-    "Greetings. You can use this space to express whatever you’re thinking or feeling.",
-    "Welcome. Feel free to speak openly here about anything you want to explore or understand better.",
-  ],
-  Kim: [
-    "Hello and welcome! This is a space to talk through what’s on your mind or life.",
-    "Hi there! Use this space to share your thoughts or questions whenever you need.",
-    "Greetings! Glad you’re here. Feel free to explore what’s important to you today.",
-  ],
-  Dan: [
-    "Hello and welcome. This is a space to share your thoughts or questions about everyday life.",
-    "Greetings. Use this space whenever you want to reflect on what’s happening or seek some clarity.",
-    "Welcome. You’re invited to share here whatever you need to think through or understand better.",
-  ],
-};
-
-const placeHolders: placeHolders = {
-  Pio: [
-    "What’s on your heart today?",
-    "What would you like to talk about?",
-    "What’s been on your mind lately?",
-  ],
-  Thérèse: [
-    "What’s quietly resting on your heart?",
-    "What would you like to share today?",
-    "What’s been on your mind or heart?",
-  ],
-  Kim: [
-    "What’s been on your mind lately?",
-    "What’s on your mind right now?",
-    "What’s something you want to discuss?",
-  ],
-  Dan: [
-    "What’s on your mind today?",
-    "What’s been on your mind lately?",
-    "What would you like to talk about?",
-  ],
-};
-
-const getRandomWelcomeMessage = (avatarType: string) => {
-  const messages = welcomeMessages[avatarType];
-  const index = Math.floor(Math.random() * messages.length);
-  console.log("randome number1===>", index);
-  return messages[index];
-};
-
-const getRamdomPlaceholder = (avatarType: string) => {
-  const holders = placeHolders[avatarType];
-  const index = Math.floor(Math.random() * holders.length);
-  console.log("randome number2===>", index);
-
-  return holders[index];
-};
-
 const parseBoldItalicText = (text: string) => {
   const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
 
@@ -143,20 +75,16 @@ const ChatPage = () => {
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const pendingFollowUpRef = useRef<string | null>(null);
-  const [welcomeMessage, setWelcomeMsg] = useState(null);
-  const [enable, setEnable] = useState(false);
+
   const [userProfile, setUserProfile] = useState({
     name: "",
     age_range: "",
     sex: "",
     life_stage: "",
-    spiritual_maturity: 1.0,
+    spiritual_maturity: "",
     spiritual_goals: [] as string[],
     avatar: "",
   });
-  const [placeholder, setPlaceholder] = useState(
-    "What would you like to talk about?"
-  );
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
@@ -170,7 +98,6 @@ const ChatPage = () => {
       if (snap.exists()) {
         setUserProfile({ ...userProfile, ...snap.data() });
       }
-      setEnable(true);
     };
 
     fetchUserSettings();
@@ -191,11 +118,8 @@ const ChatPage = () => {
   }, [isTyping]);
 
   useEffect(() => {
-    if (enable) {
-      console.log("user==========================>", user)
-      loadSessions();
-    }
-  }, [enable]);
+    if (user?.uid) loadSessions();
+  }, [user]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -239,14 +163,9 @@ const ChatPage = () => {
 
   const startNewSession = async () => {
     setMessage("");
-    const msg = getRandomWelcomeMessage(userProfile.avatar);
-    console.log("welcomemessage===>", msg);
-    setWelcomeMsg(msg);
-    const plasceholder = getRamdomPlaceholder(userProfile.avatar);
-    setPlaceholder(plasceholder);
     const welcomeMsg: Message = {
       sender: "ai",
-      text: msg,
+      text: "Welcome to RYSEN, your spiritual companion. How may I accompany you today?",
     };
     try {
       const res = await api.post("/api/chat/session", {
@@ -358,7 +277,7 @@ const ChatPage = () => {
   const handleLogout = async () => {
     await signOut(auth);
     localStorage.clear();
-    navigate("/signin");
+    navigate("/home");
   };
 
   const handleMicClick = async () => {
@@ -399,9 +318,11 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white">
-      <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
-        <h1 className="text-xl font-semibold">RYSEN</h1>
+    <div className="min-h-screen flex flex-col bg-[#212121] text-white dark:text-white">
+      <header className="flex justify-between items-center p-4 border-b ">
+        <h1 className="font-roboto font-semibold text-[24px]">
+          Spiritual Guidance
+        </h1>
         <div className="flex items-center space-x-4">
           <PlusCircle
             onClick={() => {
@@ -427,10 +348,10 @@ const ChatPage = () => {
             onClick={() => navigate("/settings")}
             className="cursor-pointer"
           />
-          <LogOut
+          {/* <LogOut
             onClick={handleLogout}
             className="cursor-pointer text-red-500"
-          />
+          /> */}
         </div>
       </header>
 
@@ -452,41 +373,30 @@ const ChatPage = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#4B3C12] to-[#281111]">
         {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
+          <div>
+            <div
+              key={idx}
+              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative text-white font-roboto font-mixed text-[15px]
             ${
               msg.sender === "ai" || msg.sender === "typing"
-                ? "bg-gray-100 dark:bg-gray-800 text-left"
-                : "bg-blue-600 text-white self-end text-right ml-auto"
+                ? "text-left "
+                : "bg-[#976B19]  font-iter self-end text-right ml-auto "
             }`}
-          >
-            {msg.sender === "typing"
-              ? typingText
-              : parseBoldItalicText(msg.text)}
-            {msg.sender === "ai" && msg.follow_ups && (
-              <div className="flex flex-wrap mt-2 gap-2 animate-rise">
-                {msg.follow_ups.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleFollowUpClick(q)}
-                    className="px-3 py-1 text-sm rounded-full bg-yellow-100 dark:bg-yellow-700 hover:bg-yellow-200 active:scale-95 transition-all"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            )}
-            {msg.sender === "ai" && idx !== 0 && (
-              <FeedbackIcons
-                msg={msg}
-                handleFeedback={handleFeedback}
-                userEmail={user?.email}
-              />
-            )}
-            {/* {msg.sender === "ai" && (
+            >
+              {msg.sender === "typing"
+                ? typingText
+                : parseBoldItalicText(msg.text)}
+
+              {msg.sender === "ai" && idx !== 0 && (
+                <FeedbackIcons
+                  msg={msg}
+                  handleFeedback={handleFeedback}
+                  userEmail={user?.email}
+                />
+              )}
+              {/* {msg.sender === "ai" && (
               <div className="absolute bottom-1 right-2 flex space-x-2 mt-2">
                 <Heart
                   className="w-4 h-4 cursor-pointer"
@@ -506,34 +416,48 @@ const ChatPage = () => {
                 />
               </div>
             )} */}
+            </div>
+            {msg.sender === "ai" && msg.follow_ups && (
+              <div className="flex flex-wrap mt-2 gap-2 animate-rise rounded-[10px]">
+                {msg.follow_ups.map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleFollowUpClick(q)}
+                    className="px-3 py-1  rounded-[10px] bg-[#333333] hover:bg-yellow-200 hover:text-black active:scale-95 transition-all text-white font-roboto font-mixed text-[15px]"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
         <div ref={chatEndRef} />
       </div>
 
-      <footer className="p-4 border-t dark:border-gray-800 flex gap-2">
-        <input
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder={placeholder}
-          className="flex-1 rounded-xl px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"
-        />
-        <button
-          onClick={handleSend}
-          disabled={isLoading}
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl"
-        >
-          Send
-        </button>
-        <button
-          onClick={handleMicClick}
-          className={`p-2 rounded-xl ${
-            isRecording ? "bg-red-500" : "bg-gray-200 dark:bg-gray-700"
-          }`}
-        >
-          <Mic className="text-white" />
-        </button>
+      <footer className="p-4  flex gap-2 bg-[#281111]">
+        <div className="flex flex-col w-full mx-2 bg-[#333333] rounded-[6px]">
+          <input
+            type="text"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="How may I accompany you today?"
+            className="w-full flex-1 rounded-xl px-4 py-2 bg-[#333333] focus:outline-none"
+          />
+          <div className="flex flex-row justify-between w-full py-2 px-2">
+            <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
+              <Mic className={isRecording ? `text-red-500` : `text-white`} />
+            </button>
+
+            <button
+              onClick={handleSend}
+              disabled={isLoading}
+              className="bg-white text-white  rounded-full p-2"
+            >
+              <FaTelegramPlane className="text-[#666666] rotate-45" size={24} />
+            </button>
+          </div>
+        </div>
       </footer>
       <BottomBar handleBibleButtonClick={() => navigate("/bible")} />
     </div>

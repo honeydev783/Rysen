@@ -1,9 +1,11 @@
 // context/AuthContext.tsx
 import React, { createContext, useEffect, useState, useContext } from "react";
 import { onAuthStateChanged, getIdToken } from "firebase/auth";
-import { auth } from "../firebase"; // Your Firebase config
+import { auth, db } from "../firebase"; // Your Firebase config
 import api from "../utils/api";
 import { setPersistence, browserLocalPersistence } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+
 
 interface User {
   uid: string;
@@ -45,12 +47,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         onAuthStateChanged(auth, async (firebaseUser) => {
           if (firebaseUser) {
             const idToken = await getIdToken(firebaseUser);
-            const endpoint = "/auth/signin";
-            const response = await api.post(`${endpoint}`, {
-              id_token: idToken,
-            });
-            console.log("context response==>", response.data);
-            const userData = response.data;
+            //
+            const uid = firebaseUser.uid;
+            const docRef = doc(db, "users", uid);
+            const snap = await getDoc(docRef);
+            const userData = snap.data();
             setUser({
               name: userData.name,
               login_count: userData.login_count,
@@ -59,12 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               uid: userData.uid,
             });
             setToken(idToken);
-
-            // // 🔁 Get user info from your backend
-            // const res = await axios.get("/api/user", {
-            //   headers: { Authorization: `Bearer ${idToken}` },
-            // });
-
             setOnboardingComplete(userData.onboarded);
             setLoginCount(userData.login_count);
           } else {

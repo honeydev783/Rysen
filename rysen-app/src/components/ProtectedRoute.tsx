@@ -11,7 +11,7 @@
 // }) => {
 //   const { user, onboardingComplete } = useAuth();
 
-//   if (!user) return <Navigate to="/signin" replace />;
+//   if (!user) return <Navigate to="/home" replace />;
 //   if (requireOnboarding && !onboardingComplete)
 //     return <Navigate to="/onboarding" replace />;
 
@@ -38,9 +38,9 @@ export const ProtectedRoute = ({
     );
   }
 
-  if (!user) return <Navigate to="/signin" replace />;
+  if (!user) return <Navigate to="/" replace />;
   if (requireOnboarding && !onboardingComplete)
-    return <Navigate to="/onboarding" replace />;
+    return <Navigate to="/onboard" replace />;
 
   return children;
 };

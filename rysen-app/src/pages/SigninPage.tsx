@@ -49,7 +49,6 @@ const SigninPage = () => {
       console.log("response==>", response.data);
       const userData = response.data;
       toast.success(isSignup ? "Signup successful!" : "Login successful!");
-      
       setUser({
         name: userData.name,
         login_count: userData.login_count,
@@ -85,7 +84,6 @@ const SigninPage = () => {
         ? await createUserWithEmailAndPassword(auth, email, password)
         : await signInWithEmailAndPassword(auth, email, password);
       console.log("userCredential====>", userCredential);
-
       await handleAuth(userCredential.user);
     } catch (error) {
       console.error("Firebase email auth error:", error);
@@ -221,11 +219,11 @@ const SigninPage = () => {
           <div className="flex mb-4 text-sm text-gray-700 justify-center dark:text-gray-300">
             <span>
               <Link
-                to="/about"
-                className="underline text-blue-600 dark:text-blue-400"
-              >
-                About Us
-              </Link>
+                  to="/about"
+                  className="underline text-blue-600 dark:text-blue-400"
+                >
+                  About Us
+                </Link>
             </span>
           </div>
 

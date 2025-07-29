@@ -7,7 +7,7 @@ class UserProfile(BaseModel):
     age_range: str
     sex: str
     life_stage: str
-    spiritual_maturity: float
+    spiritual_maturity: str
     spiritual_goals: List[str]
     avatar: str
     

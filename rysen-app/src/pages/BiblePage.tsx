@@ -135,7 +135,7 @@ const BiblePage = () => {
     age_range: "",
     sex: "",
     life_stage: "",
-    spiritual_maturity: 1.0,
+    spiritual_maturity: "",
     spiritual_goals: [] as string[],
     avatar: "",
   });
@@ -303,7 +303,7 @@ const BiblePage = () => {
   const handleLogout = async () => {
     await signOut(auth);
     localStorage.clear();
-    navigate("/signin");
+    navigate("/home");
   };
 
   const handleMicClick = async () => {
@@ -503,30 +503,30 @@ const BiblePage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white">
+    <div className="h-screen flex flex-col  bg-[#212121]  text-white dark:text-white">
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
-        <h1 className="text-xl font-semibold">RYSEN</h1>
+        <h1 className="font-roboto font-semibold text-white text-[24px]">Bible</h1>
         <div className="flex items-center space-x-4">
           <Settings
             onClick={() => navigate("/settings")}
             className="cursor-pointer"
           />
-          <LogOut
+          {/* <LogOut
             onClick={handleLogout}
             className="cursor-pointer text-red-500"
-          />
+          /> */}
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#1B373E] to-[#101215]">
         {messages.map((msg, idx) => (
           <div
             key={idx}
             className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
             ${
               msg.sender === "ai" || msg.sender === "typing"
-                ? "bg-gray-100 dark:bg-gray-800 text-left"
-                : "bg-blue-600 text-white self-end text-right ml-auto"
+                ? "text-left text-white"
+                : "text-white self-end text-right ml-auto"
             }`}
           >
             {msg.sender === "typing"
@@ -547,20 +547,20 @@ const BiblePage = () => {
           <div className="p-4 space-y-6">
             {/* Date and Liturgical Title */}
             <div className="text-center">
-              <h2 className="text-lg font-medium text-gray-600 dark:text-gray-300">
+              <h2 className="font-roboto font-regular text-white">
                 {massReadings?.date}
               </h2>
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-white">
-                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))}th
+              <h3 className="text-xl font-semibold text-white dark:text-white">
+                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))}
                 Week in {massReadings?.season_week} (Year {massReadings?.year})
               </h3>
             </div>
 
             {/* Reading Buttons */}
             {/* <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4"> */}
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3 ">
               <button
-                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-[#282828]   dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleScriptureClick(
                     "First Reading",
@@ -568,16 +568,16 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-semibold text-blue-600 dark:text-blue-400">
+                <h4 className="font-regular font-roboto text-white text-[15px]">
                   First Reading
                 </h4>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="italic font-roboto text-white text-[10px]">
                   {massReadings?.readings.first}
                 </p>
               </button>
               {massReadings?.readings.second && (
                 <button
-                  className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                  className="w-full lg:w-1/2 bg-[#282828]   dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
                   onClick={() =>
                     handleScriptureClick(
                       "Second Reading",
@@ -585,17 +585,17 @@ const BiblePage = () => {
                     )
                   }
                 >
-                  <h4 className="font-semibold text-green-600 dark:text-green-400">
+                  <h4 className="font-regular font-roboto text-white text-[15px]">
                     Second Reading
                   </h4>
-                  <p className="text-gray-700 dark:text-gray-300">
+                  <p className="italic font-roboto text-white text-[10px]">
                     {massReadings?.readings.second}
                   </p>
                 </button>
               )}
 
               <button
-                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-[#282828]  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleScriptureClick(
                     "Responsorial Psalm",
@@ -603,16 +603,16 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-semibold text-purple-600 dark:text-purple-400">
+                <h4 className="font-regular font-roboto text-white text-[15px]">
                   Responsorial Psalm
                 </h4>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="italic font-roboto text-white text-[10px]">
                   {massReadings?.readings.psalm}
                 </p>
               </button>
 
               <button
-                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-[#282828]  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleScriptureClick(
                     "Gospel Reading",
@@ -620,16 +620,16 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-semibold text-red-600 dark:text-red-400">
+                <h4 className="font-regular font-roboto text-white text-[15px]">
                   Gospel Reading
                 </h4>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="italic font-roboto text-white text-[10px]">
                   {massReadings?.readings.gospel}
                 </p>
               </button>
 
               <button
-                className="w-full lg:w-1/2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow hover:shadow-lg transition"
+                className="w-full lg:w-1/2 bg-[#282828] dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
                 onClick={() =>
                   handleSaintClick(
                     "Saint of the Day ",
@@ -637,10 +637,10 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-semibold text-yellow-600 dark:text-yellow-400">
+                <h4 className="font-regular font-roboto text-white text-[15px]">
                   Saint of the Day
                 </h4>
-                <p className="text-gray-700 dark:text-gray-300">
+                <p className="italic font-roboto text-white text-[10px]">
                   {massReadings?.saint}
                 </p>
               </button>
@@ -649,7 +649,7 @@ const BiblePage = () => {
         )}
       </div>
 
-      <footer className="p-4 border-t dark:border-gray-800">
+      <footer className="p-4  bg-[#101215]">
         <div className="flex flex-wrap justify-center gap-2">
           {showButtons && (
             <>
@@ -658,7 +658,7 @@ const BiblePage = () => {
                   onClick={() => {
                     handleNewReading();
                   }}
-                  className="w-full lg:w-1/2 bg-green-600 text-white px-4 py-2 rounded-xl"
+                  className="w-full lg:w-1/2 bg-white text-[#333333] px-4 py-2 rounded-xl"
                 >
                   Study This Reading
                 </button>
@@ -669,7 +669,7 @@ const BiblePage = () => {
                     startNewSession(welcomeMessage);
                     setShowButtons(false);
                   }}
-                  className="w-full lg:w-1/2 bg-gray-400 text-white px-4 py-2 rounded-xl"
+                  className="w-full lg:w-1/2 bg-[#333333] text-white px-4 py-2 rounded-xl"
                 >
                   Close
                 </button>

@@ -10,7 +10,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import OnboardingPage from "./pages/Onbarding";
-import SigninPage from "./pages/SigninPage";
+// import SigninPage from "./pages/homePage";
 import DonationModal from "./components/DonationModal";
 import DonationSuccessPage from "./pages/DonationSuccessPage";
 import ChatPage from "./pages/ChatPage";
@@ -22,6 +22,9 @@ import TermsOfServicePage from "./pages/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import PrayerPage from "./pages/PrayerPage";
 import BiblePage from "./pages/BiblePage";
+import HomeScreen from "./pages/HomeScreen";
+import LoginPage from "./pages/LoginPage";
+import OnboardingPageNew from "./pages/OnboardingPage";
 function AppContent() {
   const { user, loading } = useAuth();
   const [showDonation, setShowDonation] = useState(false);
@@ -139,13 +142,22 @@ function AppContent() {
       )}
 
       <Routes>
-        <Route path="/signin" element={<SigninPage />} />
+        <Route path="/home" element={<HomeScreen />} />
+        {/* <Route path="/home" element={<SigninPage />} /> */}
         <Route path="/donate-success" element={<DonationSuccessPage />} />
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsOfServicePage />} />
         <Route path="/about" element={<AboutPage />} />
-
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/onboard"
+          element={
+            <OnboardingPageNew
+              showDonationPrompt={() => setShowDonation(true)}
+            />
+          }
+        />
         <Route
           path="/onboarding"
           element={
@@ -157,14 +169,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/chat"
-          element={
-            <ProtectedRoute>
-              <ChatPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/chat" element={<ChatPage />} />
         <Route
           path="/prayer"
           element={
@@ -184,14 +189,13 @@ function AppContent() {
         <Route
           path="/settings"
           element={
-            <ProtectedRoute>
-              <SettingsPage
-                showDonation={() => setShowDonation(true)}
-                hideSkipping={() => setShowSkipping(false)}
-              />
-            </ProtectedRoute>
+            <SettingsPage
+              showDonation={() => setShowDonation(true)}
+              hideSkipping={() => setShowSkipping(false)}
+            />
           }
         />
+        {/* <Route path="/" element={<HomeScreen />} /> */}
         <Route
           path="/"
           element={
@@ -201,10 +205,10 @@ function AppContent() {
               user.onboarded ? (
                 <Navigate to="/welcome" replace />
               ) : (
-                <Navigate to="/onboarding" replace />
+                <Navigate to="/onboard" replace />
               )
             ) : (
-              <Navigate to="/signin" replace />
+              <Navigate to="/home" replace />
             )
           }
         />

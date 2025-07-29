@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { getToken } from "firebase/messaging";
-import { getAuth } from "firebase/auth";
+import { getAuth, signOut } from "firebase/auth";
 import {
   doc,
   getDoc,
@@ -8,48 +7,47 @@ import {
   updateDoc,
   deleteField,
 } from "firebase/firestore";
-import { db, messaging } from "../firebase";
+import { db, auth } from "../firebase";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import {
   HeartIcon,
   ShareIcon,
-  PaperAirplaneIcon,
+  StarIcon,
+  ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
 import { ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
-
+import { TrashIcon, LogOut, Trash2Icon, ExternalLink } from "lucide-react";
 interface SettingsPageProps {
   showDonation: () => void;
   hideSkipping: () => void;
 }
 
-const ageOptions = ["Under 16", "16–24", "25–34", "35–49", "50+"];
-
 const avatarOptions = [
   {
     key: "Pio",
-    name: "Pio",
-    image: "/avatars/avatar1.png",
-    description: "Inspired by the life and works of Saint Padre Pio.",
+    description:
+      "Modeled on Saint Padre Pio, a man of prayer, healing, and tireless devotion to the confessional.",
+    img: "/avatars/Pio - Dark mode.svg",
   },
   {
     key: "Thérèse",
-    name: "Thérèse",
-    image: "/avatars/avatar2.png",
-    description: "Inspired by St. Thérèse of Lisoux, the Little Flower.",
+    description:
+      "Inspired by St. Thérèse of Lisieux, who found holiness in small, loving acts and deep trust in God's mercy.",
+    img: "/avatars/Therese - Dark mode.svg",
   },
   {
     key: "Kim",
-    name: "Kim",
-    image: "/avatars/avatar3.png",
-    description: "Bubbly, friendly youth leader passionate about faith.",
+    description:
+      "A joyful and faith-filled youth leader who loves walking with others on their spiritual journey.",
+    img: "/avatars/Kim - Dark mode.svg",
   },
   {
     key: "Dan",
-    name: "Dan",
-    image: "/avatars/avatar4.png",
-    description: "Father of three, understands real-life faith challenges.",
+    description:
+      "A devoted father juggling faith, family and work, grounded in real-life spiritual struggles.",
+    img: "/avatars/Dan - Dark mode.svg",
   },
 ];
 
@@ -65,16 +63,20 @@ export default function SettingsPage({
     age_range: "",
     sex: "",
     life_stage: "",
-    spiritual_maturity: 1.0,
+    spiritual_maturity: "",
     spiritual_goals: [] as string[],
     avatar: "",
+    theme: "",
+    responseStyle: "",
     notificationsEnabled: false,
   });
-
+  const [themeStyle, setThemeStyle] = useState("dark");
+  const [responseStyle, setResponseStyle] = useState("default");
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
       const user = auth.currentUser;
+      console.log("feching...");
       if (!user) return;
       const docRef = doc(db, "users", user.uid);
       const snap = await getDoc(docRef);
@@ -113,7 +115,7 @@ export default function SettingsPage({
 
   const clearChatHistory = async () => {
     const user = getAuth().currentUser;
-    if (!user) return navigate("/signin");
+    if (!user) return navigate("/home");
     try {
       await api.delete(`/api/chat-sessions/user/${user.uid}`);
       toast.success("Chat history cleared.");
@@ -153,18 +155,22 @@ export default function SettingsPage({
   const sendFeedback = () => {
     toast.success("Redirecting to feedback...");
   };
+  const handleLogout = async () => {
+    await signOut(auth);
+    localStorage.clear();
+    navigate("/home");
+  };
 
-  const openLink = (url) => window.open(url, "_blank");
   return (
-    <div className="min-h-screen w-full bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-      <div className="flex flex-col max-w-xl mx-auto bg-white dark:bg-gray-800 min-h-screen">
+    <div className="min-h-screen w-full bg-[#171717] text-white  dark:text-white">
+      <div className="flex flex-col max-w-xl mx-auto bg-[#171717]  min-h-screen">
         {/* Header row: back + save */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center p-4  dark:border-gray-700">
           <button
             onClick={() =>
               activeSection ? setActiveSection(null) : navigate(-1)
             }
-            className="text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"
+            className="hover:text-gray-800  dark:hover:text-white"
           >
             {activeSection ? (
               <ChevronLeftIcon className="w-6 h-6" />
@@ -178,7 +184,7 @@ export default function SettingsPage({
             <button
               onClick={saveSettings}
               disabled={loading}
-              className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              className="font-roboto  font-medium text-[#15px] text-[#DB9A98]"
             >
               {loading ? "Saving..." : "Save"}
             </button>
@@ -186,7 +192,7 @@ export default function SettingsPage({
         </div>
 
         {/* Title */}
-        <h2 className="text-xl font-semibold px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="font-roboto font-semibold text-[24px] px-4 py-2   dark:border-gray-700">
           {activeSection === "personal"
             ? "Personal Details"
             : activeSection === "personalization"
@@ -208,7 +214,7 @@ export default function SettingsPage({
                 <button
                   key={item.key}
                   onClick={() => setActiveSection(item.key)}
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
+                  className="w-full flex items-center font-roboto font-regular text-[15px] border-b border-b-[#36373B] justify-between px-4 py-3"
                 >
                   <span>{item.label}</span>
                   <ChevronRightIcon className="w-5 h-5" />
@@ -218,24 +224,32 @@ export default function SettingsPage({
               <div className="space-y-2 mt-6">
                 <button
                   onClick={handleShare}
-                  className="flex items-center gap-2 text-[#DB9A98]"
+                  className="flex items-center pt-4 gap-2 font-roboto font-medium text-[15px] text-[#DB9A98]"
                 >
-                  <ShareIcon className="w-5 h-5" />
-                  Share Rysen with Others
+                  <ShareIcon className="w-4 h-4" />
+                  Share The RYSEN app with Others
                 </button>
                 <button
                   onClick={redirectToDonate}
-                  className="flex items-center gap-2 text-[#DB9A98]"
+                  className="flex items-center gap-2 font-roboto font-medium text-[15px] pt-4 text-[#DB9A98]"
                 >
-                  <HeartIcon className="w-5 h-5" />
+                  <HeartIcon className="w-4 h-4" />
                   Make a Donation
                 </button>
                 <button
                   onClick={sendFeedback}
-                  className="flex items-center gap-2 text-[#DB9A98]"
+                  className="flex items-center pt-4 font-roboto font-medium text-[15px] gap-2 text-[#DB9A98]"
                 >
-                  <PaperAirplaneIcon className="w-5 h-5" />
+                  <StarIcon className="w-5 h-5" />
                   Send Feedback
+                </button>
+
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center pt-4 font-roboto font-medium text-[15px] gap-2 text-[#ED686E]"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Log Out
                 </button>
               </div>
             </>
@@ -246,40 +260,46 @@ export default function SettingsPage({
             <>
               {/* Name + Age */}
               <div className="mb-6">
-                <label className="block mb-2">Name</label>
+                <label className="block mb-2 font-roboto font-medium text-[15px]">
+                  Name
+                </label>
                 <input
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full p-2 border rounded dark:bg-gray-700"
+                  className="w-full p-2 border rounded-[6px] bg-[#282828] font-roboto font-regular text-[15px]"
                   placeholder="Your Name"
                 />
 
-                <label className="block mt-4 mb-2">Age Range</label>
-                <select
+                <label className="block mt-4 mb-2 font-roboto font-medium text-[15px]">
+                  Year or birth
+                </label>
+                <input
                   value={formData.age_range}
                   onChange={(e) =>
                     setFormData({ ...formData, age_range: e.target.value })
                   }
-                  className="w-full p-2 border rounded dark:bg-gray-700"
-                >
-                  <option value="">Select Age Range</option>
+                  className="w-full p-2 border rounded-[6px] bg-[#282828] font-roboto font-regular text-[15px]"
+                />
+                {/* <option value="">Select Age Range</option>
                   {ageOptions.map((opt) => (
                     <option key={opt}>{opt}</option>
                   ))}
-                </select>
+                </select> */}
               </div>
 
               {/* Sex + Life Stage */}
-              <div className="mb-6">
-                <label className="block mb-2">Sex</label>
+              <div className="mb-6 ">
+                <label className="block mb-2 font-roboto font-medium text-[15px]">
+                  Gender
+                </label>
                 <select
                   value={formData.sex}
                   onChange={(e) =>
                     setFormData({ ...formData, sex: e.target.value })
                   }
-                  className="w-full p-2 border rounded dark:bg-gray-700"
+                  className="w-full p-2 border rounded-[6px] bg-[#282828] font-roboto font-regular text-[15px]"
                 >
                   <option value="">Select</option>
                   <option>Male</option>
@@ -287,49 +307,60 @@ export default function SettingsPage({
                   <option>Prefer not to say</option>
                 </select>
 
-                <label className="block mt-4 mb-2">Life Stage</label>
+                <label className="block mt-4 mb-2 mb-2 font-roboto font-medium text-[15px]">
+                  Life Stage
+                </label>
                 <select
                   value={formData.life_stage}
                   onChange={(e) =>
                     setFormData({ ...formData, life_stage: e.target.value })
                   }
-                  className="w-full p-2 border rounded dark:bg-gray-700"
+                  className="w-full p-2 border rounded-[6px] bg-[#282828] accent-[#A55D51] font-roboto font-regular text-[15px]"
                 >
                   <option value="">Select</option>
                   <option>Single</option>
                   <option>Married</option>
                   <option>Married with children</option>
-                  <option>Religious (Priest, Nun, etc)</option>
+                  <option>Engaged</option>
+                  <option>Widowed</option>
+                  <option>Divorced or separated</option>
+                  <option>Religious (Priest, Brother, Sister, Nun)</option>
+                  <option>In consecrated or lay vocation</option>
+                  <option>Prefer not to say</option>
                 </select>
               </div>
 
               {/* Spiritual Maturity */}
               <div className="mb-6">
-                <label className="block mb-2">Spiritual Maturity</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="3"
-                  step="0.01"
+                <label className="block mb-2 font-roboto font-medium text-[15px]">
+                  Spiritual Maturity
+                </label>
+                <select
                   value={formData.spiritual_maturity}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      spiritual_maturity: parseFloat(e.target.value),
+                      spiritual_maturity: e.target.value,
                     })
                   }
-                  className="w-full"
-                />
-                <div className="flex justify-between text-sm">
-                  <span>Exploring</span>
-                  <span>Growing</span>
-                  <span>Mature</span>
-                </div>
+                  className="w-full p-2 border rounded-[6px] bg-[#282828] accent-[#A55D51] font-roboto font-regular text-[15px]"
+                >
+                  <option value="">Select</option>
+                  <option>Curious & Exploring</option>
+                  <option>Beginning the Journey</option>
+                  <option>Growing & Learning</option>
+                  <option>Rooted & Trusting</option>
+                  <option>Leading & Discipling</option>
+                  <option>In a Season of Doubt or Dryness</option>
+                  <option>Returning & Reconnecting</option>
+                </select>
               </div>
 
               {/* Spiritual Goals */}
               <div className="mb-6">
-                <label className="block mb-2">Spiritual Goals</label>
+                <label className="block mb-2 font-roboto font-medium text-[15px]">
+                  Spiritual Goals
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {[
                     "Grow my prayer life",
@@ -344,10 +375,10 @@ export default function SettingsPage({
                     <button
                       key={goal}
                       onClick={() => toggleGoal(goal)}
-                      className={`px-3 py-1 rounded-full border text-sm ${
+                      className={`px-3 py-2 rounded-[80px] border  font-roboto font-medium text-[15px] ${
                         formData.spiritual_goals.includes(goal)
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-200 dark:bg-gray-700"
+                          ? "bg-[#A55D51] text-white"
+                          : "bg-[#282828] "
                       }`}
                     >
                       {goal}
@@ -363,28 +394,125 @@ export default function SettingsPage({
             <>
               {/* Avatar */}
               <div className="mb-6">
-                <label className="block mb-4 text-lg font-medium">
-                  Your Spiritual Companion
+                <label className="block mb-4 font-roboto  font-medium text-[15px]">
+                  Spiritual Companion
                 </label>
                 <div className="grid grid-cols-2 gap-4">
-                  {avatarOptions.map((avatar) => (
-                    <button
-                      key={avatar.key}
-                      onClick={() =>
-                        setFormData({ ...formData, avatar: avatar.key })
-                      }
-                      className={`border rounded-xl p-3 text-left transition ${
-                        formData.avatar === avatar.key
-                          ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-800 dark:border-indigo-400"
-                          : "border-gray-300 dark:border-gray-700"
+                  {avatarOptions.map((item) => (
+                    <div
+                      className={`flex flex-col  rounded overflow-hidden cursor-pointer ${
+                        formData.avatar === item.key
+                          ? "bg-[#A55D51]"
+                          : "bg-[#282828]"
                       }`}
                     >
-                      <strong className="text-sm">{avatar.name}</strong>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                        {avatar.description}
-                      </p>
-                    </button>
+                      <div className="flex items-center justify-center">
+                        <img src={item.img} className="w-full " />
+                      </div>
+                      <button
+                        key={item.key}
+                        onClick={() =>
+                          setFormData({ ...formData, avatar: item.key })
+                        }
+                        className={`p-3 text-center transition ${
+                          formData.avatar === item.key
+                            ? "bg-[#A55D51]"
+                            : "bg-[#282828]"
+                        }`}
+                      >
+                        <strong className="text-sm">{item.key}</strong>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
+                          {item.description}
+                        </p>
+                      </button>
+                    </div>
                   ))}
+                </div>
+                <div className="mt-4 border-y border-y-[#37373B]">
+                  <label className="block  font-roboto  font-regular text-[15px]">
+                    Appearance
+                  </label>
+                  <div className="flex space-x-6 items-center mb-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="theme"
+                        value="light"
+                        className="form-radio accent-[#DB9A98] w-4 h-4"
+                        checked={formData.theme === "light"}
+                        onChange={(e) => {
+                          setThemeStyle(e.target.value);
+                          setFormData({ ...formData, theme: e.target.value });
+                        }}
+                      />
+                      <span className="text-white font-roboto font-regular text-[15px]">
+                        Light Mode
+                      </span>
+                    </label>
+
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="theme"
+                        value="dark"
+                        className="form-radio accent-[#DB9A98] w-4 h-4"
+                        checked={formData.theme === "dark"}
+                        onChange={(e) => {
+                          setThemeStyle(e.target.value);
+                          setFormData({ ...formData, theme: e.target.value });
+                        }}
+                      />
+                      <span className="text-white font-roboto font-regular text-[15px]">
+                        Dark Mode
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <div className="mt-4 border-y border-y-[#37373B]">
+                  <label className="block  font-roboto  font-regular text-[15px]">
+                    Response Style
+                  </label>
+                  <div className="flex space-x-6 items-center mb-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="response"
+                        value="default"
+                        className="form-radio accent-[#DB9A98] w-4 h-4"
+                        checked={formData.responseStyle === "default"}
+                        onChange={(e) => {
+                          setResponseStyle(e.target.value);
+                          setFormData({
+                            ...formData,
+                            responseStyle: e.target.value,
+                          });
+                        }}
+                      />
+                      <span className="text-white font-roboto font-regular text-[15px]">
+                        Default
+                      </span>
+                    </label>
+
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="response"
+                        value="precise"
+                        className="form-radio accent-[#DB9A98] w-4 h-4"
+                        checked={formData.responseStyle === "precise"}
+                        onChange={(e) => {
+                          setResponseStyle(e.target.value);
+                          setFormData({
+                            ...formData,
+                            responseStyle: e.target.value,
+                          });
+                        }}
+                      />
+                      <span className="text-white font-roboto font-regular text-[15px]">
+                        Precise
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </>
@@ -395,36 +523,38 @@ export default function SettingsPage({
             <div className="space-y-3">
               <button
                 onClick={() => navigate("/terms")}
-                className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
+                className="w-full flex items-center font-roboto font-regular text-[15px] border-b border-b-[#36373B] justify-between px-4 py-3"
               >
-                RYSEN - Terms of Service{" "}
-                <ChevronRightIcon className="w-5 h-5" />
+                RYSEN - Terms of Service <ExternalLink className="w-6 h-6" />
               </button>
               <button
                 onClick={() => navigate("/privacy")}
-                className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
+                className="w-full flex items-center font-roboto font-regular text-[15px] border-b border-b-[#36373B] justify-between px-4 py-3"
               >
-                RYSEN - Privacy Policy <ChevronRightIcon className="w-5 h-5" />
+                RYSEN - Privacy Policy <ExternalLink className="w-6 h-6" />
               </button>
               <button
                 onClick={() => navigate("/about")}
-                className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
+                className="w-full flex items-center font-roboto font-regular text-[15px] border-b border-b-[#36373B] justify-between px-4 py-3"
               >
-                RYSEN - About Us <ChevronRightIcon className="w-5 h-5" />
+                RYSEN - About Us <ExternalLink className="w-6 h-6" />
               </button>
               <button
                 onClick={clearChatHistory}
-                className="w-full px-4 py-2 rounded bg-red-500 text-white"
+                className="flex items-center gap-2 font-roboto font-medium text-[15px] pt-4 text-[#DB9A98]"
               >
+                <Trash2Icon className="w-4 h-4" />
                 Clear Chat History
               </button>
               <button
                 onClick={clearPastoralMemory}
-                className="w-full px-4 py-2 rounded bg-red-500 text-white"
+                className="flex items-center gap-2 font-roboto font-medium text-[15px] pt-4 text-[#DB9A98]"
               >
+                <Trash2Icon className="w-4 h-4" />
                 Delete Pastoral Memory
               </button>
-              <button className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700">
+              <button className="flex items-center gap-2 font-roboto font-medium text-[15px] pt-4 text-[#DB9A98]">
+                <Trash2Icon className="w-4 h-4" />
                 Opt out of Sharing App Analytics
               </button>
             </div>
@@ -433,273 +563,4 @@ export default function SettingsPage({
       </div>
     </div>
   );
-
-  // return (
-  //   <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white px-4 py-8">
-  //     <div className="max-w-xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
-  //       <div className="flex items-center mb-6">
-  //         {activeSection ? (
-  //           <button onClick={() => setActiveSection(null)} className="mr-2">
-  //             <ChevronLeftIcon className="w-6 h-6 text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white" />
-  //           </button>
-  //         ) : (
-  //           <button onClick={() => navigate(-1)} className="mr-2 text-2xl">
-  //             &times;
-  //           </button>
-  //         )}
-  //         <h2 className="text-2xl font-semibold">
-  //           {activeSection === "personal"
-  //             ? "Personal Details"
-  //             : activeSection === "personalization"
-  //             ? "App Personalization"
-  //             : activeSection === "privacy"
-  //             ? "Privacy & Security"
-  //             : "Settings"}
-  //         </h2>
-  //       </div>
-
-  //       {/* Main Section */}
-  //       {!activeSection && (
-  //         <div className="space-y-3">
-  //           {[
-  //             { key: "personal", label: "Personal Details" },
-  //             { key: "personalization", label: "App Personalization" },
-  //             { key: "privacy", label: "Privacy & Security" },
-  //           ].map((item) => (
-  //             <button
-  //               key={item.key}
-  //               onClick={() => setActiveSection(item.key)}
-  //               className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
-  //             >
-  //               <span>{item.label}</span>
-  //               <ChevronRightIcon className="w-5 h-5" />
-  //             </button>
-  //           ))}
-  //           <div className="space-y-2 mt-6">
-  //             <button
-  //               onClick={handleShare}
-  //               className="flex items-center gap-2 text-[#DB9A98]"
-  //             >
-  //               <ShareIcon className="w-5 h-5" />
-  //               Share Rysen with Others
-  //             </button>
-  //             <button
-  //               onClick={redirectToDonate}
-  //               className="flex items-center gap-2 text-[#DB9A98]"
-  //             >
-  //               <HeartIcon className="w-5 h-5" />
-  //               Make a Donation
-  //             </button>
-  //             <button
-  //               onClick={sendFeedback}
-  //               className="flex items-center gap-2 text-[#DB9A98]"
-  //             >
-  //               <PaperAirplaneIcon className="w-5 h-5" />
-  //               Send Feedback
-  //             </button>
-  //           </div>
-  //         </div>
-  //       )}
-
-  //       {/* Personal Details */}
-  //       {activeSection === "personal" && (
-  //         <>
-  //           <div className="mb-6">
-  //             <label className="block mb-2">Name</label>
-  //             <input
-  //               value={formData.name}
-  //               onChange={(e) =>
-  //                 setFormData({ ...formData, name: e.target.value })
-  //               }
-  //               className="w-full p-2 border rounded dark:bg-gray-700"
-  //               placeholder="Your Name"
-  //             />
-
-  //             <label className="block mt-4 mb-2">Age Range</label>
-  //             <select
-  //               value={formData.age_range}
-  //               onChange={(e) =>
-  //                 setFormData({ ...formData, age_range: e.target.value })
-  //               }
-  //               className="w-full p-2 border rounded dark:bg-gray-700"
-  //             >
-  //               <option value="">Select Age Range</option>
-  //               {ageOptions.map((opt) => (
-  //                 <option key={opt}>{opt}</option>
-  //               ))}
-  //             </select>
-  //           </div>
-
-  //           {/* Sex + Life Stage */}
-  //           <div className="mb-6">
-  //             <label className="block mb-2">Sex</label>
-  //             <select
-  //               value={formData.sex}
-  //               onChange={(e) =>
-  //                 setFormData({ ...formData, sex: e.target.value })
-  //               }
-  //               className="w-full p-2 border rounded dark:bg-gray-700"
-  //             >
-  //               <option value="">Select</option>
-  //               <option>Male</option>
-  //               <option>Female</option>
-  //               <option>Prefer not to say</option>
-  //             </select>
-
-  //             <label className="block mt-4 mb-2">Life Stage</label>
-  //             <select
-  //               value={formData.life_stage}
-  //               onChange={(e) =>
-  //                 setFormData({ ...formData, life_stage: e.target.value })
-  //               }
-  //               className="w-full p-2 border rounded dark:bg-gray-700"
-  //             >
-  //               <option value="">Select</option>
-  //               <option>Single</option>
-  //               <option>Married</option>
-  //               <option>Married with children</option>
-  //               <option>Religious (Priest, Nun, etc)</option>
-  //             </select>
-  //           </div>
-
-  //           {/* Spiritual Maturity */}
-  //           <div className="mb-6">
-  //             <label className="block mb-2">Spiritual Maturity</label>
-  //             <input
-  //               type="range"
-  //               min="1"
-  //               max="3"
-  //               step="0.01"
-  //               value={formData.spiritual_maturity}
-  //               onChange={(e) =>
-  //                 setFormData({
-  //                   ...formData,
-  //                   spiritual_maturity: parseFloat(e.target.value),
-  //                 })
-  //               }
-  //               className="w-full"
-  //             />
-  //             <div className="flex justify-between text-sm">
-  //               <span>Exploring</span>
-  //               <span>Growing</span>
-  //               <span>Mature</span>
-  //             </div>
-  //           </div>
-
-  //           {/* Spiritual Goals */}
-  //           <div className="mb-6">
-  //             <label className="block mb-2">Spiritual Goals</label>
-  //             <div className="flex flex-wrap gap-2">
-  //               {[
-  //                 "Grow my prayer life",
-  //                 "Get closer to God",
-  //                 "Learn more about my faith",
-  //                 "Find peace in suffering",
-  //                 "Help me discern life decisions",
-  //                 "Strengthen my marriage or family life",
-  //                 "Support me through grief",
-  //                 "Overcome temptation",
-  //               ].map((goal) => (
-  //                 <button
-  //                   key={goal}
-  //                   onClick={() => toggleGoal(goal)}
-  //                   className={`px-3 py-1 rounded-full border text-sm ${
-  //                     formData.spiritual_goals.includes(goal)
-  //                       ? "bg-indigo-600 text-white"
-  //                       : "bg-gray-200 dark:bg-gray-700"
-  //                   }`}
-  //                 >
-  //                   {goal}
-  //                 </button>
-  //               ))}
-  //             </div>
-  //           </div>
-  //         </>
-  //       )}
-
-  //       {/* App Personalization */}
-  //       {activeSection === "personalization" && (
-  //         <>
-  //           <div className="mb-6">
-  //             <label className="block mb-4 text-lg font-medium">
-  //               Your Spiritual Companion
-  //             </label>
-  //             <div className="grid grid-cols-2 gap-4">
-  //               {avatarOptions.map((avatar) => (
-  //                 <button
-  //                   key={avatar.key}
-  //                   onClick={() =>
-  //                     setFormData({ ...formData, avatar: avatar.key })
-  //                   }
-  //                   className={`border rounded-xl p-3 text-left transition ${
-  //                     formData.avatar === avatar.key
-  //                       ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-800 dark:border-indigo-400"
-  //                       : "border-gray-300 dark:border-gray-700"
-  //                   }`}
-  //                 >
-  //                   <strong className="text-sm">{avatar.name}</strong>
-  //                   <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-  //                     {avatar.description}
-  //                   </p>
-  //                 </button>
-  //               ))}
-  //             </div>
-  //           </div>
-  //         </>
-  //       )}
-
-  //       {/* Privacy & Security */}
-  //       {activeSection === "privacy" && (
-  //         <div className="space-y-3">
-  //           <button
-  //             onClick={() => openLink("/terms")}
-  //             className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
-  //           >
-  //             RYSEN - Terms of Service <ChevronRightIcon className="w-5 h-5" />
-  //           </button>
-  //           <button
-  //             onClick={() => openLink("/privacy")}
-  //             className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
-  //           >
-  //             RYSEN - Privacy Policy <ChevronRightIcon className="w-5 h-5" />
-  //           </button>
-  //           <button
-  //             onClick={() => openLink("/about")}
-  //             className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700"
-  //           >
-  //             RYSEN - About Us <ChevronRightIcon className="w-5 h-5" />
-  //           </button>
-  //           <button
-  //             onClick={clearChatHistory}
-  //             className="w-full px-4 py-2 rounded bg-red-500 text-white"
-  //           >
-  //             Clear Chat History
-  //           </button>
-  //           <button
-  //             onClick={clearPastoralMemory}
-  //             className="w-full px-4 py-2 rounded bg-red-500 text-white"
-  //           >
-  //             Delete Pastoral Memory
-  //           </button>
-  //           <button className="w-full flex justify-between px-4 py-3 rounded-xl bg-gray-200 dark:bg-gray-700">
-  //             Opt out of Sharing App Analytics
-  //           </button>
-  //         </div>
-  //       )}
-
-  //       {/* Save Button */}
-  //       {activeSection && (
-  //         <div className="mt-8 text-right">
-  //           <button
-  //             onClick={saveSettings}
-  //             disabled={loading}
-  //             className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700"
-  //           >
-  //             {loading ? "Saving..." : "Save Settings"}
-  //           </button>
-  //         </div>
-  //       )}
-  //     </div>
-  //   </div>
-  // );
 }

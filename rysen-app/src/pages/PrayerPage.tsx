@@ -11,7 +11,7 @@ import FeedbackIcons from "../components/FeedbackIcons";
 import { doc, getDoc } from "firebase/firestore";
 import BottomBar from "../components/BottomBar";
 import WelcomePage from "./WelcomePage";
-
+import { FaTelegramPlane } from "react-icons/fa";
 interface Message {
   id?: string;
   sender: "user" | "ai" | "typing";
@@ -118,7 +118,7 @@ const PrayerPage = () => {
     age_range: "",
     sex: "",
     life_stage: "",
-    spiritual_maturity: 1.0,
+    spiritual_maturity: "",
     spiritual_goals: [] as string[],
     avatar: "",
   });
@@ -205,7 +205,7 @@ const PrayerPage = () => {
         text: message,
         profile: userProfile,
         user_email: user?.email,
-        user_id: user?.uid
+        user_id: user?.uid,
       });
       console.log("Prayer API response:===>", res.data);
       const aiReply: Message = {
@@ -251,7 +251,7 @@ const PrayerPage = () => {
   const handleLogout = async () => {
     await signOut(auth);
     localStorage.clear();
-    navigate("/signin");
+    navigate("/home");
   };
 
   const handleMicClick = async () => {
@@ -278,30 +278,32 @@ const PrayerPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white">
+    <div className="h-screen flex flex-col bg-[#212121] text-black dark:text-white">
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
-        <h1 className="text-xl font-semibold">RYSEN</h1>
+        <h1 className="font-roboto font-semibold text-white text-[24px]">
+          Personal Prayer
+        </h1>
         <div className="flex items-center space-x-4">
           <Settings
             onClick={() => navigate("/settings")}
-            className="cursor-pointer"
+            className="cursor-pointer text-white"
           />
-          <LogOut
+          {/* <LogOut
             onClick={handleLogout}
             className="cursor-pointer text-red-500"
-          />
+          /> */}
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#27234E] to-[#17161C]">
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
+            className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative text-white font-roboto font-mixed text-[15px]
             ${
               msg.sender === "ai" || msg.sender === "typing"
-                ? "bg-gray-100 dark:bg-gray-800 text-left"
-                : "bg-blue-600 text-white self-end text-right ml-auto"
+                ? "text-left"
+                : "bg-[#976B19]  self-end text-right ml-auto"
             }`}
           >
             {msg.sender === "typing"
@@ -346,7 +348,7 @@ const PrayerPage = () => {
           </button>
         </footer>
       )} */}
-      <footer className="p-4 border-t dark:border-gray-800 flex gap-2">
+      <footer className="p-4  bg-[#17161C] flex gap-2">
         {showButtons ? (
           <>
             <button
@@ -354,46 +356,71 @@ const PrayerPage = () => {
                 startNewSession(welcomeMessage);
                 setShowButtons(false);
               }}
-              className="bg-green-600 text-white px-4 py-2 rounded-xl flex-1"
+              className="bg-white text-[#333333] px-4 py-2 rounded-xl flex-1 font-roboto font-medium text-[15px]"
             >
               New Intention
             </button>
             <button
               onClick={() => navigate("/chat")}
-              className="bg-gray-400 text-white px-4 py-2 rounded-xl flex-1"
+              className="bg-[#333333] text-white px-4 py-2 rounded-xl flex-1 text-[15px]"
             >
               Close
             </button>
           </>
         ) : (
-          <>
+          // <>
+          //   <input
+          //     type="text"
+          //     value={message}
+          //     onChange={(e) => setMessage(e.target.value)}
+          //     placeholder={placeholder}
+          //     className="flex-1 rounded-xl px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"
+          //   />
+          //   <button
+          //     onClick={handleSend}
+          //     disabled={isLoading}
+          //     className="bg-blue-600 text-white px-4 py-2 rounded-xl"
+          //   >
+          //     Send
+          //   </button>
+          //   <button
+          //     onClick={handleMicClick}
+          //     className={`p-2 rounded-xl ${
+          //       isRecording ? "bg-red-500" : "bg-gray-200 dark:bg-gray-700"
+          //     }`}
+          //   >
+          //     <Mic className="text-white" />
+          //   </button>
+          // </>
+          <div className="flex flex-col w-full mx-2 bg-[#333333] rounded-[6px]">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder={placeholder}
-              className="flex-1 rounded-xl px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"
+              placeholder="How may I accompany you today?"
+              className="w-full flex-1 text-white rounded-xl px-4 py-2 bg-[#333333] focus:outline-none"
             />
-            <button
-              onClick={handleSend}
-              disabled={isLoading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-xl"
-            >
-              Send
-            </button>
-            <button
-              onClick={handleMicClick}
-              className={`p-2 rounded-xl ${
-                isRecording ? "bg-red-500" : "bg-gray-200 dark:bg-gray-700"
-              }`}
-            >
-              <Mic className="text-white" />
-            </button>
-          </>
+            <div className="flex flex-row justify-between w-full py-2 px-2">
+              <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
+                <Mic className={isRecording ? `text-red-500` : `text-white`} />
+              </button>
+
+              <button
+                onClick={handleSend}
+                disabled={isLoading}
+                className="bg-white text-white  rounded-full p-2"
+              >
+                <FaTelegramPlane
+                  className="text-[#666666] rotate-45"
+                  size={24}
+                />
+              </button>
+            </div>
+          </div>
         )}
       </footer>
 
-      <BottomBar handleBibleButtonClick = {() => navigate('/bible')} />
+      <BottomBar handleBibleButtonClick={() => navigate("/bible")} />
     </div>
   );
 };

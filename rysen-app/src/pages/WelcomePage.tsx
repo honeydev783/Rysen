@@ -1,51 +1,144 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const WelcomePage = () => {
   const navigate = useNavigate();
-
+  const [visibleItems, setVisibleItems] = useState(0);
   // Optional: track whether user has already seen the welcome page
   useEffect(() => {
     localStorage.setItem("hasSeenWelcome", "true");
   }, []);
+  useEffect(() => {
+    const timeouts = [];
+    const totalItems = 6; // number of paragraphs + button
+    const interval = 2000; // every 3 seconds next item
 
+    for (let i = 1; i <= totalItems; i++) {
+      timeouts.push(setTimeout(() => setVisibleItems(i), i * interval));
+    }
+
+    return () => timeouts.forEach((t) => clearTimeout(t));
+  }, []);
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-b from-white to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
-      <div className="max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6 md:p-10 space-y-6">
-        <div className="text-center space-y-4">
-          <blockquote className="italic text-xl text-gray-700 dark:text-gray-200">
-            “Come to Me, all you who are weary and burdened, and I will give you rest.”
-          </blockquote>
-          <p className="text-sm text-gray-500 dark:text-gray-400">~ Matthew 11:28</p>
-        </div>
+    <div className="relative min-h-screen bg-[#171717]">
+      {/* Fullscreen GIF background */}
+      <img
+        src="/Welcome.png"
+        alt="HomePage"
+        className="absolute inset-0 object-cover w-full h-full"
+      />
 
-        <div className="text-gray-800 dark:text-gray-100 space-y-4 text-[17px] leading-relaxed">
-          <p className="font-semibold text-center text-2xl text-indigo-600 dark:text-indigo-400">Welcome to RYSEN</p>
-          <p>
-            A space for prayerful guidance and reflection, rooted in the Holy Scriptures, the wisdom of the Saints,
-            and the sacred teachings of the Catholic Church.
-          </p>
-          <p>
-            Whether you're seeking clarity, comfort, or deeper understanding, this tool is here to meet you where
-            you are on your faith journey — helping you reflect, pray, and grow closer to God.
-          </p>
-          <p>
-            Begin this session in the name of Jesus, asking the Holy Spirit to inspire and enlighten your heart, and
-            entrusting your path to Mary, our Blessed Mother.
-          </p>
-          <p>
-            This companion offers faithful counsel, always in the light of Holy Mother Church. It is meant to support,
-            and can never replace, the grace found in the Sacraments, personal prayer, and trusted spiritual direction.
-          </p>
-        </div>
+      {/* Gradient overlay starting from middle with stronger fade */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            "linear-gradient(to bottom, rgba(23,23,23,0) 45%, rgba(23,23,23,0.98) 62%, #171717 100%)",
+        }}
+      />
 
-        <div className="text-center">
+      {/* Content */}
+      {/* <div className="relative flex flex-col justify-end min-h-screen px-4 pb-6 text-center ">
+        <p className="text-white font-roboto font-semibold text-[20px] text-left mt-2  fade-in-up">
+          “Come to Me, all you who are weary and burdened, and I will give you
+          rest.”
+        </p>
+        <p className="text-white font-roboto font-regular text-[13px] text-left mt-2  fade-in-up">
+          ~ Matthew 11:28
+        </p>
+
+        <p className="text-white font-roboto font-bold text-[17px] pt-6 text-left fade-in-up">
+          Welcome to Rysen
+        </p>
+        <p className="text-white font-roboto font-regular text-[15px] text-left fade-in-up">
+          A space for prayerful guidance and reflection, rooted in the Holy
+          Scriptures, the wisdom of the Saints, and the sacred teachings of the
+          Catholic Church.
+        </p>
+
+        <p className="text-white font-roboto font-regular text-[15px] text-left pt-2  fade-in-up">
+          Begin this session in the name of Jesus, asking the Holy Spirit to
+          inspire and enlighten your heart, and entrusting your path to Mary,
+          our Blessed Mother.
+        </p>
+
+        <div className="mt-8 w-full max-w-sm mx-auto  fade-in-up">
           <button
-            onClick={() => navigate("/chat")}
-            className="mt-6 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full shadow-lg transition-all duration-200"
+            className="flex items-center justify-center gap-2 w-full bg-white rounded-[33px] py-3"
+            onClick={() => navigate("/login")}
           >
-            Continue
+            <span className="text-[#333333] font-roboto font-medium text-[15px]">
+              Continue
+            </span>
           </button>
+        </div>
+      </div> */}
+      <div className="relative flex flex-col justify-end min-h-screen px-4 pb-6 text-center overflow-hidden">
+        <div
+          className="flex flex-col  transition-transform duration-[2000ms] ease-out"
+          style={{
+            transform: `translateY(-${visibleItems * 1}px)`,
+          }}
+        >
+          <p
+            className={`text-white font-roboto font-semibold text-[20px] text-left mt-2 fade-in ${
+              visibleItems >= 1 ? "visible" : ""
+            }`}
+          >
+            “Come to Me, all you who are weary and burdened, and I will give you
+            rest.”
+          </p>
+
+          <p
+            className={`text-white font-roboto font-regular text-[13px] text-left mt-2 fade-in ${
+              visibleItems >= 2 ? "visible" : ""
+            }`}
+          >
+            ~ Matthew 11:28
+          </p>
+
+          <p
+            className={`text-white font-roboto font-bold text-[17px] pt-6 text-left fade-in ${
+              visibleItems >= 3 ? "visible" : ""
+            }`}
+          >
+            Welcome to Rysen
+          </p>
+
+          <p
+            className={`text-white font-roboto font-regular text-[15px] text-left fade-in ${
+              visibleItems >= 4 ? "visible" : ""
+            }`}
+          >
+            A space for prayerful guidance and reflection, rooted in the Holy
+            Scriptures, the wisdom of the Saints, and the sacred teachings of
+            the Catholic Church.
+          </p>
+
+          <p
+            className={`text-white font-roboto font-regular text-[15px] text-left pt-2 fade-in ${
+              visibleItems >= 5 ? "visible" : ""
+            }`}
+          >
+            Begin this session in the name of Jesus, asking the Holy Spirit to
+            inspire and enlighten your heart, and entrusting your path to Mary,
+            our Blessed Mother.
+          </p>
+
+          <div
+            className={`mt-8 w-full max-w-sm mx-auto fade-in ${
+              visibleItems >= 6 ? "visible" : ""
+            }`}
+          >
+            <button
+              className="flex items-center justify-center gap-2 w-full bg-white rounded-[33px] py-3"
+              onClick={() => navigate("/chat")}
+            >
+              <span className="text-[#333333] font-roboto font-medium text-[15px]">
+                Continue
+              </span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

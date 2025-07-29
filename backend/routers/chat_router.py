@@ -581,9 +581,9 @@ async def study_bible(
             }
         else:
             user_profile = payload.profile
-            spiritual_maturity = utils.get_spirituality_stage(
-                user_profile.spiritual_maturity
-            )
+            # spiritual_maturity = utils.get_spirituality_stage(
+            #     user_profile.spiritual_maturity
+            # )
             spiritual_goals = ", ".join(user_profile.spiritual_goals)
             prompt = f"""
             You are an AI spiritual guide for a Catholic faith app called RYSEN. The user has selected the “Study Verse” button. Your role is to guide them through a structured Catholic Bible study based on the selected verse.
@@ -594,7 +594,7 @@ async def study_bible(
             - Age Range: {user_profile.age_range}
             - Gender: {user_profile.sex}
             - Life Stage: {user_profile.life_stage}
-            - Spiritual Maturity (1–5): {spiritual_maturity}
+            - Spiritual Maturity: {user_profile.spiritual_maturity}
             - Spiritual Goals: {spiritual_goals}
             - Avatar Voice: {user_profile.avatar}
 
@@ -677,7 +677,7 @@ async def send_message(
     await db.commit()
     user_profile = payload.profile
     avatar_description = utils.get_avatar_name(user_profile.avatar)
-    spiritual_maturity = utils.get_spirituality_stage(user_profile.spiritual_maturity)
+    spiritual_maturity = user_profile.spiritual_maturity
     spiritual_goals = ", ".join(user_profile.spiritual_goals)
 
     m = await db.execute(
