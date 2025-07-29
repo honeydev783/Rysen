@@ -50,11 +50,10 @@ export default function LoginPage() {
       console.log("response==>", response.data);
       const userData = response.data;
       toast.success(isSignup ? "Signup successful!" : "Login successful!");
-      if (isSignup) {
-        setIsSignup(false);
-        setLoading(false);
-        return;
-      }
+
+      setIsSignup(false);
+      setLoading(false);
+
       setUser({
         name: userData.name,
         login_count: userData.login_count,
