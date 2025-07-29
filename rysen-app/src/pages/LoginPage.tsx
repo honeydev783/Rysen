@@ -249,7 +249,10 @@ export default function LoginPage() {
             </button> */}
             <button
               className="w-10 h-10 rounded-full bg-[#e3e3e3] dark:bg-[#333333] flex items-center justify-center"
-              onClick={handleGoogle}
+              onClick={() => {
+                setIsSignup(false);
+                handleGoogle();
+              }}
             >
               <FaGoogle
                 size={20}
