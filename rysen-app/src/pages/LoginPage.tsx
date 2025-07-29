@@ -38,7 +38,7 @@ export default function LoginPage() {
     const idToken = await firebaseUser.getIdToken();
     console.log("idToken===>", idToken);
     try {
-      const endpoint = isSignup ? "/auth/signup" : "/auth/signin";
+      const endpoint = isSignup && !googleLoading ? "/auth/signup" : "/auth/signin";
       const response = await api.post(`${endpoint}`, {
         id_token: idToken,
       });
