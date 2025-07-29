@@ -447,7 +447,7 @@ export default function OnboardingPageNew({
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className="h-screen bg-white dark:bg-[#171717] flex flex-col px-6 pt-6 ">
+    <div className="h-screen bg-[#171717]  dark:bg-[#171717] flex flex-col px-6 pt-6 ">
       {/* Top row with back arrow & progress bar */}
       <div className="flex items-center gap-2 shrink-0">
         <button onClick={prevStep}>
