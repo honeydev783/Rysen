@@ -34,11 +34,16 @@ export default function LoginPage() {
   const [checked, setChecked] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
-  const handleAuth = async (firebaseUser: any) => {
+  const handleAuth = async (firebaseUser: any, type: string) => {
     const idToken = await firebaseUser.getIdToken();
     console.log("idToken===>", idToken);
     try {
-      const endpoint = isSignup && !googleLoading ? "/auth/signup" : "/auth/signin";
+      let endpoint;
+      if (type == "email") {
+        endpoint = isSignup ? "/auth/signup" : "/auth/signin";
+      } else {
+        endpoint = "/auth/signin";
+      }
       const response = await api.post(`${endpoint}`, {
         id_token: idToken,
       });
@@ -57,7 +62,7 @@ export default function LoginPage() {
         onboarded: userData.onboarded,
         uid: userData.uid,
         theme: userData.theme,
-        responseStyle: userData.responseStyle
+        responseStyle: userData.responseStyle,
       });
 
       if (userData.onboarded) {
@@ -88,7 +93,7 @@ export default function LoginPage() {
         : await signInWithEmailAndPassword(auth, email, password);
       console.log("userCredential====>", userCredential);
 
-      await handleAuth(userCredential.user);
+      await handleAuth(userCredential.user, "email");
     } catch (error) {
       console.error("Firebase email auth error:", error);
       if (error.code === "auth/email-already-in-use") {
@@ -129,7 +134,7 @@ export default function LoginPage() {
       setGoogleLoading(true);
       const result = await signInWithPopup(auth, provider);
       setIsSignup(false);
-      await handleAuth(result.user);
+      await handleAuth(result.user, "google");
     } catch (error) {
       console.error("Google login error:", error);
       toast.error("Authentication failed. Please try again.");
@@ -143,7 +148,9 @@ export default function LoginPage() {
     );
   } else {
     return (
-      <div className={`min-h-screen flex flex-col px-6 pt-6 relative bg-[#FFFFFF]`}>
+      <div
+        className={`min-h-screen flex flex-col px-6 pt-6 relative bg-[#FFFFFF]`}
+      >
         {/* Top-left back arrow */}
         <button
           className="text-[#333333] dark:text-white"
@@ -249,10 +256,7 @@ export default function LoginPage() {
             </button> */}
             <button
               className="w-10 h-10 rounded-full bg-[#e3e3e3] dark:bg-[#333333] flex items-center justify-center"
-              onClick={() => {
-                setIsSignup(false);
-                handleGoogle();
-              }}
+              onClick={handleGoogle}
             >
               <FaGoogle
                 size={20}
