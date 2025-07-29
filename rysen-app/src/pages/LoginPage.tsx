@@ -24,7 +24,7 @@ interface User {
 }
 
 export default function LoginPage() {
-  const { setUser } = useAuth(); // 👈 get setUser from
+  const { user, setUser } = useAuth(); // 👈 get setUser from
   const [isSignup, setIsSignup] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -56,6 +56,8 @@ export default function LoginPage() {
         email: userData.email,
         onboarded: userData.onboarded,
         uid: userData.uid,
+        theme: userData.theme,
+        responseStyle: userData.responseStyle
       });
 
       if (userData.onboarded) {
@@ -141,7 +143,7 @@ export default function LoginPage() {
     );
   } else {
     return (
-      <div className="min-h-screen bg-white dark:bg-[#171717] flex flex-col px-6 pt-6 relative">
+      <div className={`min-h-screen flex flex-col px-6 pt-6 relative bg-[#FFFFFF]`}>
         {/* Top-left back arrow */}
         <button
           className="text-[#333333] dark:text-white"
@@ -236,7 +238,7 @@ export default function LoginPage() {
 
           {/* icons */}
           <div className="mt-4 flex justify-center gap-4">
-            <button
+            {/* <button
               className="w-10 h-10 rounded-full bg-[#e3e3e3] dark:bg-[#333333] flex items-center justify-center"
               onClick={handleGoogle}
             >
@@ -244,14 +246,14 @@ export default function LoginPage() {
                 size={20}
                 className="text-[#4267B2] dark:text-[#E3E3E3]"
               />
-            </button>
+            </button> */}
             <button
               className="w-10 h-10 rounded-full bg-[#e3e3e3] dark:bg-[#333333] flex items-center justify-center"
               onClick={handleGoogle}
             >
               <FaGoogle
                 size={20}
-                className="text-[#DB4437] dark:text-[#E3E3E3]"
+                className="text-[#666666] dark:text-[#666666]"
               />
             </button>
           </div>

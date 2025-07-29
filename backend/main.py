@@ -137,6 +137,8 @@ async def signup(data: TokenRequest):
             "email": email,
             "login_count": 0,
             "onboarded": False,
+            "theme": "light",
+            "responseStyle": "default",
             "created_at": datetime.utcnow(),
         }
 
@@ -149,6 +151,8 @@ async def signup(data: TokenRequest):
             "email": email,
             "login_count": 0,
             "onboarded": False,
+            "theme": "light",
+            "responseStyle": "default",
         }
 
     except Exception as e:
@@ -165,7 +169,7 @@ async def signin(data: TokenRequest):
         print("decoded_token==>", decoded_token, uid, email)
         user_ref = db.collection("users").document(uid)
         user_doc = user_ref.get()
-
+         
         if not user_doc.exists:
             user_data = {
                 "uid": uid,
@@ -173,6 +177,8 @@ async def signin(data: TokenRequest):
                 "email": email,
                 "login_count": 1,
                 "onboarded": False,
+                "theme" : "light",
+                "responseStyle": "default",
                 "created_at": datetime.utcnow(),
             }
 
@@ -183,6 +189,8 @@ async def signin(data: TokenRequest):
                 "name": name,
                 "email": email,
                 "login_count": 1,
+                "theme" : "light",
+                "responseStyle": "default",
                 "onboarded": user_data.get("onboarded", False),
             }
 
@@ -191,12 +199,16 @@ async def signin(data: TokenRequest):
         name = user_data.get("name", "")
         user_ref.update({"login_count": login_count, "last_login": datetime.utcnow()})
         uid = user_data.get("uid", "")
+        theme = user_data.get("theme", "light")
+        responseStyle = user_data.get("responseStyle", "default")
         return {
             "message": "Signin successful",
             "uid": uid,
             "name": name,
             "email": email,
             "login_count": login_count,
+            "theme": theme,
+            "responseStyle": responseStyle,
             "onboarded": user_data.get("onboarded", False),
         }
 

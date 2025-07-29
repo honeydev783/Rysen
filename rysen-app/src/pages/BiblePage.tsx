@@ -503,9 +503,15 @@ const BiblePage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col  bg-[#212121]  text-white dark:text-white">
+    <div
+      className={`h-screen flex flex-col  ${
+        user?.theme === "light"
+          ? "bg-white text-[#333333]"
+          : "bg-[#212121]  text-white"
+      }`}
+    >
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
-        <h1 className="font-roboto font-semibold text-white text-[24px]">Bible</h1>
+        <h1 className="font-roboto font-semibold text-[24px]">Bible</h1>
         <div className="flex items-center space-x-4">
           <Settings
             onClick={() => navigate("/settings")}
@@ -518,39 +524,69 @@ const BiblePage = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#1B373E] to-[#101215]">
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
+      <div
+        className={`flex-1 overflow-y-auto p-4 space-y-3  ${
+          user?.theme === "light"
+            ? "bg-gradient-to-b from-[#E8FBFF] to-[#FEFEFE]"
+            : "bg-gradient-to-b from-[#1B373E] to-[#101215]"
+        }`}
+      >
+        {messages.map((msg, idx) =>
+          user?.theme === "light" ? (
+            <div
+              key={idx}
+              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
+            ${
+              msg.sender === "ai" || msg.sender === "typing"
+                ? "text-left text-[#333333]"
+                : "bg-[#D0ECF3] text-[#333333] self-end text-right ml-auto"
+            }`}
+            >
+              {msg.sender === "typing"
+                ? typingText
+                : parseBoldItalicText(msg.text)}
+
+              {msg.sender === "ai" && idx !== 0 && (
+                <FeedbackIcons
+                  msg={msg}
+                  handleFeedback={handleFeedback}
+                  userEmail={user?.email}
+                />
+              )}
+            </div>
+          ) : (
+            <div
+              key={idx}
+              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left text-white"
-                : "text-white self-end text-right ml-auto"
+                : "bg-[#976B19] text-white self-end text-right ml-auto"
             }`}
-          >
-            {msg.sender === "typing"
-              ? typingText
-              : parseBoldItalicText(msg.text)}
+            >
+              {msg.sender === "typing"
+                ? typingText
+                : parseBoldItalicText(msg.text)}
 
-            {msg.sender === "ai" && idx !== 0 && (
-              <FeedbackIcons
-                msg={msg}
-                handleFeedback={handleFeedback}
-                userEmail={user?.email}
-              />
-            )}
-          </div>
-        ))}
+              {msg.sender === "ai" && idx !== 0 && (
+                <FeedbackIcons
+                  msg={msg}
+                  handleFeedback={handleFeedback}
+                  userEmail={user?.email}
+                />
+              )}
+            </div>
+          )
+        )}
         <div ref={chatEndRef} />
         {showReadings && massReadings && (
           <div className="p-4 space-y-6">
             {/* Date and Liturgical Title */}
             <div className="text-center">
-              <h2 className="font-roboto font-regular text-white">
+              <h2 className={`font-roboto font-regular  text-[13px] ${user?.theme==="light" ? "text-[#333333]" : "text-white"}`}>
                 {massReadings?.date}
               </h2>
-              <h3 className="text-xl font-semibold text-white dark:text-white">
+              <h3 className={`text-[17px] font-semibold ${user?.theme==="light" ? "text-[#333333]" : "text-white"}}`}>
                 {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))}
                 Week in {massReadings?.season_week} (Year {massReadings?.year})
               </h3>
@@ -560,7 +596,7 @@ const BiblePage = () => {
             {/* <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4"> */}
             <div className="flex flex-wrap justify-center gap-3 ">
               <button
-                className="w-full lg:w-1/2 bg-[#282828]   dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
                 onClick={() =>
                   handleScriptureClick(
                     "First Reading",
@@ -568,16 +604,16 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-regular font-roboto text-white text-[15px]">
+                <h4 className="font-regular font-roboto  text-[15px]">
                   First Reading
                 </h4>
-                <p className="italic font-roboto text-white text-[10px]">
+                <p className="italic font-roboto text-[10px]">
                   {massReadings?.readings.first}
                 </p>
               </button>
               {massReadings?.readings.second && (
                 <button
-                  className="w-full lg:w-1/2 bg-[#282828]   dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
                   onClick={() =>
                     handleScriptureClick(
                       "Second Reading",
@@ -585,17 +621,17 @@ const BiblePage = () => {
                     )
                   }
                 >
-                  <h4 className="font-regular font-roboto text-white text-[15px]">
+                  <h4 className="font-regular font-roboto  text-[15px]">
                     Second Reading
                   </h4>
-                  <p className="italic font-roboto text-white text-[10px]">
+                  <p className="italic font-roboto  text-[10px]">
                     {massReadings?.readings.second}
                   </p>
                 </button>
               )}
 
               <button
-                className="w-full lg:w-1/2 bg-[#282828]  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
                 onClick={() =>
                   handleScriptureClick(
                     "Responsorial Psalm",
@@ -603,16 +639,16 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-regular font-roboto text-white text-[15px]">
+                <h4 className="font-regular font-roboto  text-[15px]">
                   Responsorial Psalm
                 </h4>
-                <p className="italic font-roboto text-white text-[10px]">
+                <p className="italic font-roboto  text-[10px]">
                   {massReadings?.readings.psalm}
                 </p>
               </button>
 
               <button
-                className="w-full lg:w-1/2 bg-[#282828]  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
                 onClick={() =>
                   handleScriptureClick(
                     "Gospel Reading",
@@ -620,16 +656,16 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-regular font-roboto text-white text-[15px]">
+                <h4 className="font-regular font-roboto  text-[15px]">
                   Gospel Reading
                 </h4>
-                <p className="italic font-roboto text-white text-[10px]">
+                <p className="italic font-roboto  text-[10px]">
                   {massReadings?.readings.gospel}
                 </p>
               </button>
 
               <button
-                className="w-full lg:w-1/2 bg-[#282828] dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition"
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
                 onClick={() =>
                   handleSaintClick(
                     "Saint of the Day ",
@@ -637,10 +673,10 @@ const BiblePage = () => {
                   )
                 }
               >
-                <h4 className="font-regular font-roboto text-white text-[15px]">
+                <h4 className="font-regular font-roboto  text-[15px]">
                   Saint of the Day
                 </h4>
-                <p className="italic font-roboto text-white text-[10px]">
+                <p className="italic font-roboto  text-[10px]">
                   {massReadings?.saint}
                 </p>
               </button>
@@ -649,7 +685,7 @@ const BiblePage = () => {
         )}
       </div>
 
-      <footer className="p-4  bg-[#101215]">
+      <footer className={`p-4 ${user?.theme === "light" ? "bg-[#FDFEFE]" : "bg-[#101215]"}`}>
         <div className="flex flex-wrap justify-center gap-2">
           {showButtons && (
             <>
@@ -658,7 +694,7 @@ const BiblePage = () => {
                   onClick={() => {
                     handleNewReading();
                   }}
-                  className="w-full lg:w-1/2 bg-white text-[#333333] px-4 py-2 rounded-xl"
+                  className={`w-full lg:w-1/2 font-roboto font-medium text-[15px]  px-4 py-2 rounded-xl ${user?.theme=== "light" ? "bg-[#333333] text-white" : "bg-white text-[#333333]"}`}
                 >
                   Study This Reading
                 </button>
@@ -669,7 +705,7 @@ const BiblePage = () => {
                     startNewSession(welcomeMessage);
                     setShowButtons(false);
                   }}
-                  className="w-full lg:w-1/2 bg-[#333333] text-white px-4 py-2 rounded-xl"
+                  className={`w-full lg:w-1/2 font-roboto font-medium text-[15px]  px-4 py-2 rounded-xl ${user?.theme=== "light" ? "bg-[#F3F3F3] text-[#333333]" : "bg-[#333333] text-white"}`}
                 >
                   Close
                 </button>

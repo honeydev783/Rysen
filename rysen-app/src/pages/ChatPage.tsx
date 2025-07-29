@@ -318,7 +318,13 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#212121] text-white dark:text-white">
+    <div
+      className={`min-h-screen flex flex-col  ${
+        user?.theme === "light"
+          ? "bg-white text-[#333333]"
+          : "bg-[#212121] text-white"
+      }`}
+    >
       <header className="flex justify-between items-center p-4 border-b ">
         <h1 className="font-roboto font-semibold text-[24px]">
           Spiritual Guidance
@@ -373,57 +379,72 @@ const ChatPage = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#4B3C12] to-[#281111]">
+      <div
+        className={`flex-1 overflow-y-auto p-4 space-y-3  ${
+          user?.theme === "light"
+            ? "bg-gradient-to-b from-[#FFF2E0] to-[#FEFBF5]"
+            : "bg-gradient-to-b from-[#4B3C12] to-[#281111]"
+        }`}
+      >
         {messages.map((msg, idx) => (
           <div>
-            <div
-              key={idx}
-              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative text-white font-roboto font-mixed text-[15px]
+            {user?.theme === "light" ? (
+              <div
+                key={idx}
+                className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative text-[#333333] font-roboto font-mixed text-[15px]
+            ${
+              msg.sender === "ai" || msg.sender === "typing"
+                ? "text-left "
+                : "bg-[#ECDBC5]  font-iter self-end text-right ml-auto "
+            }`}
+              >
+                {msg.sender === "typing"
+                  ? typingText
+                  : parseBoldItalicText(msg.text)}
+
+                {msg.sender === "ai" && idx !== 0 && (
+                  <FeedbackIcons
+                    msg={msg}
+                    handleFeedback={handleFeedback}
+                    userEmail={user?.email}
+                  />
+                )}
+              </div>
+            ) : (
+              <div
+                key={idx}
+                className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative text-white font-roboto font-mixed text-[15px]
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left "
                 : "bg-[#976B19]  font-iter self-end text-right ml-auto "
             }`}
-            >
-              {msg.sender === "typing"
-                ? typingText
-                : parseBoldItalicText(msg.text)}
+              >
+                {msg.sender === "typing"
+                  ? typingText
+                  : parseBoldItalicText(msg.text)}
 
-              {msg.sender === "ai" && idx !== 0 && (
-                <FeedbackIcons
-                  msg={msg}
-                  handleFeedback={handleFeedback}
-                  userEmail={user?.email}
-                />
-              )}
-              {/* {msg.sender === "ai" && (
-              <div className="absolute bottom-1 right-2 flex space-x-2 mt-2">
-                <Heart
-                  className="w-4 h-4 cursor-pointer"
-                  onClick={() => handleFeedback("heart", msg.id)}
-                />
-                <Copy
-                  className="w-4 h-4 cursor-pointer"
-                  onClick={() => navigator.clipboard.writeText(msg.text)}
-                />
-                <Share2
-                  className="w-4 h-4 cursor-pointer"
-                  onClick={() => handleFeedback("share", msg.id)}
-                />
-                <Flag
-                  className="w-4 h-4 cursor-pointer text-red-500"
-                  onClick={() => handleFeedback("flag", msg.id)}
-                />
+                {msg.sender === "ai" && idx !== 0 && (
+                  <FeedbackIcons
+                    msg={msg}
+                    handleFeedback={handleFeedback}
+                    userEmail={user?.email}
+                  />
+                )}
               </div>
-            )} */}
-            </div>
+            )}
+
             {msg.sender === "ai" && msg.follow_ups && (
               <div className="flex flex-wrap mt-2 gap-2 animate-rise rounded-[10px]">
                 {msg.follow_ups.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => handleFollowUpClick(q)}
-                    className="px-3 py-1  rounded-[10px] bg-[#333333] hover:bg-yellow-200 hover:text-black active:scale-95 transition-all text-white font-roboto font-mixed text-[15px]"
+                    className={`px-3 py-1  rounded-[10px]  hover:bg-yellow-200 hover:text-black active:scale-95 transition-all  font-roboto font-mixed text-[15px] ${
+                      user?.theme === "light"
+                        ? "bg-[#F3F3F3] text-[#333333]"
+                        : "bg-[#333333] text-white"
+                    }`}
                   >
                     {q}
                   </button>
@@ -435,26 +456,42 @@ const ChatPage = () => {
         <div ref={chatEndRef} />
       </div>
 
-      <footer className="p-4  flex gap-2 bg-[#281111]">
-        <div className="flex flex-col w-full mx-2 bg-[#333333] rounded-[6px]">
+      <footer
+        className={`p-4  flex gap-2  ${
+          user?.theme === "light" ? "bg-[#FEFBF5]" : "bg-[#281111]"
+        }`}
+      >
+        <div
+          className={`flex flex-col w-full mx-2  rounded-[6px] ${
+            user?.theme === "light" ? "bg-[#FAFAFA]" : "bg-[#333333]"
+          }`}
+        >
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="How may I accompany you today?"
-            className="w-full flex-1 rounded-xl px-4 py-2 bg-[#333333] focus:outline-none"
+            className={`w-full flex-1 rounded-xl px-4 py-2  focus:outline-none ${
+              user?.theme === "light" ? "bg-[#FAFAFA]" : "bg-[#333333]"
+            }`}
           />
           <div className="flex flex-row justify-between w-full py-2 px-2">
-            <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
-              <Mic className={isRecording ? `text-red-500` : `text-white`} />
-            </button>
+            {user?.theme === "light" ? (
+              <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
+                <Mic className={isRecording ? `text-red-500` : `text-[#666666]`} />
+              </button>
+            ) : (
+              <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
+                <Mic className={isRecording ? `text-red-500` : `text-white`} />
+              </button>
+            )}
 
             <button
               onClick={handleSend}
               disabled={isLoading}
-              className="bg-white text-white  rounded-full p-2"
+              className={` rounded-full p-2 ${user?.theme === "light" ? "bg-[#3D3D3D] text-[#E3E3E3]" : "bg-white text-white"}`}
             >
-              <FaTelegramPlane className="text-[#666666] rotate-45" size={24} />
+              <FaTelegramPlane className={` rotate-45 ${user?.theme === "light" ? "text-[#E3E3E3]" : "text-[#666666]"}`} size={24} />
             </button>
           </div>
         </div>

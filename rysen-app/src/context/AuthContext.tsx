@@ -13,6 +13,8 @@ interface User {
   login_count: string;
   onboarded: boolean;
   email: string;
+  theme: string;
+  responseStyle: string;
 }
 interface AuthContextType {
   user: User | null;
@@ -52,12 +54,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             const docRef = doc(db, "users", uid);
             const snap = await getDoc(docRef);
             const userData = snap.data();
+            console.log("userData in context===>", userData)
             setUser({
               name: userData.name,
               login_count: userData.login_count,
               email: userData.email,
               onboarded: userData.onboarded,
               uid: userData.uid,
+              theme: userData.theme,
+              responseStyle: userData.responseStyle
             });
             setToken(idToken);
             setOnboardingComplete(userData.onboarded);

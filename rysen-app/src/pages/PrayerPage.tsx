@@ -278,15 +278,21 @@ const PrayerPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[#212121] text-black dark:text-white">
+    <div
+      className={`h-screen flex flex-col  ${
+        user?.theme === "light"
+          ? "bg-white text-[#333333]"
+          : "bg-[#212121]  text-white"
+      }`}
+    >
       <header className="flex justify-between items-center p-4 border-b dark:border-gray-800">
-        <h1 className="font-roboto font-semibold text-white text-[24px]">
+        <h1 className="font-roboto font-semibold  text-[24px]">
           Personal Prayer
         </h1>
         <div className="flex items-center space-x-4">
           <Settings
             onClick={() => navigate("/settings")}
-            className="cursor-pointer text-white"
+            className="cursor-pointer"
           />
           {/* <LogOut
             onClick={handleLogout}
@@ -295,60 +301,68 @@ const PrayerPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gradient-to-b from-[#27234E] to-[#17161C]">
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative text-white font-roboto font-mixed text-[15px]
+      <div
+        className={`flex-1 overflow-y-auto p-4 space-y-3  ${
+          user?.theme === "light"
+            ? "bg-gradient-to-b from-[#F4F3FF] to-[#FEFEFF] text-[#333333]"
+            : "bg-gradient-to-b from-[#27234E] to-[#17161C] text-white"
+        }`}
+      >
+        {messages.map((msg, idx) =>
+          user?.theme === "light" ? (
+            <div
+              key={idx}
+              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative  font-roboto font-mixed text-[15px]
+            ${
+              msg.sender === "ai" || msg.sender === "typing"
+                ? "text-left"
+                : "bg-[#D0ECF3]  self-end text-right ml-auto"
+            }`}
+            >
+              {msg.sender === "typing"
+                ? typingText
+                : parseBoldItalicText(msg.text)}
+
+              {msg.sender === "ai" && idx !== 0 && (
+                <FeedbackIcons
+                  msg={msg}
+                  handleFeedback={handleFeedback}
+                  userEmail={user?.email}
+                />
+              )}
+            </div>
+          ) : (
+            <div
+              key={idx}
+              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative  font-roboto font-mixed text-[15px]
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left"
                 : "bg-[#976B19]  self-end text-right ml-auto"
             }`}
-          >
-            {msg.sender === "typing"
-              ? typingText
-              : parseBoldItalicText(msg.text)}
+            >
+              {msg.sender === "typing"
+                ? typingText
+                : parseBoldItalicText(msg.text)}
 
-            {msg.sender === "ai" && idx !== 0 && (
-              <FeedbackIcons
-                msg={msg}
-                handleFeedback={handleFeedback}
-                userEmail={user?.email}
-              />
-            )}
-          </div>
-        ))}
+              {msg.sender === "ai" && idx !== 0 && (
+                <FeedbackIcons
+                  msg={msg}
+                  handleFeedback={handleFeedback}
+                  userEmail={user?.email}
+                />
+              )}
+            </div>
+          )
+        )}
         <div ref={chatEndRef} />
       </div>
 
-      {/* {!showButtons && (
-        <footer className="p-4 border-t dark:border-gray-800 flex gap-2">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder={placeholder}
-            className="flex-1 rounded-xl px-4 py-2 bg-gray-100 dark:bg-gray-800 focus:outline-none"
-          />
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="bg-blue-600 text-white px-4 py-2 rounded-xl"
-          >
-            Send
-          </button>
-          <button
-            onClick={handleMicClick}
-            className={`p-2 rounded-xl ${
-              isRecording ? "bg-red-500" : "bg-gray-200 dark:bg-gray-700"
-            }`}
-          >
-            <Mic className="text-white" />
-          </button>
-        </footer>
-      )} */}
-      <footer className="p-4  bg-[#17161C] flex gap-2">
+      <footer
+        className={`p-4  flex gap-2 ${
+          user?.theme === "light" ? "FEFEFF" : "bg-[#17161C]"
+        }`}
+      >
         {showButtons ? (
           <>
             <button
@@ -356,13 +370,21 @@ const PrayerPage = () => {
                 startNewSession(welcomeMessage);
                 setShowButtons(false);
               }}
-              className="bg-white text-[#333333] px-4 py-2 rounded-xl flex-1 font-roboto font-medium text-[15px]"
+              className={` px-4 py-2 rounded-xl flex-1 font-roboto font-medium text-[15px] ${
+                user?.theme === "light"
+                  ? "bg-[#333333] text-white"
+                  : "bg-white text-[#333333]"
+              }`}
             >
               New Intention
             </button>
             <button
               onClick={() => navigate("/chat")}
-              className="bg-[#333333] text-white px-4 py-2 rounded-xl flex-1 text-[15px]"
+              className={` px-4 py-2 rounded-xl flex-1 text-[15px] ${
+                user?.theme === "light"
+                  ? "bg-white text-[#333333]"
+                  : "bg-[#333333] text-white"
+              }`}
             >
               Close
             </button>
@@ -392,26 +414,50 @@ const PrayerPage = () => {
           //     <Mic className="text-white" />
           //   </button>
           // </>
-          <div className="flex flex-col w-full mx-2 bg-[#333333] rounded-[6px]">
+          <div
+            className={`flex flex-col w-full mx-2  rounded-[6px] ${
+              user?.theme === "light" ? "bg-[#FAFAFA]" : "bg-[#333333]"
+            }`}
+          >
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="How may I accompany you today?"
-              className="w-full flex-1 text-white rounded-xl px-4 py-2 bg-[#333333] focus:outline-none"
+              className={`w-full flex-1 rounded-xl px-4 py-2  focus:outline-none ${
+                user?.theme === "light" ? "bg-[#FAFAFA]" : "bg-[#333333]"
+              }`}
             />
             <div className="flex flex-row justify-between w-full py-2 px-2">
-              <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
-                <Mic className={isRecording ? `text-red-500` : `text-white`} />
-              </button>
+              {user?.theme === "light" ? (
+                <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
+                  <Mic
+                    className={isRecording ? `text-red-500` : `text-[#666666]`}
+                  />
+                </button>
+              ) : (
+                <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
+                  <Mic
+                    className={isRecording ? `text-red-500` : `text-white`}
+                  />
+                </button>
+              )}
 
               <button
                 onClick={handleSend}
                 disabled={isLoading}
-                className="bg-white text-white  rounded-full p-2"
+                className={` rounded-full p-2 ${
+                  user?.theme === "light"
+                    ? "bg-[#3D3D3D] text-[#E3E3E3]"
+                    : "bg-white text-white"
+                }`}
               >
                 <FaTelegramPlane
-                  className="text-[#666666] rotate-45"
+                  className={` rotate-45 ${
+                    user?.theme === "light"
+                      ? "text-[#E3E3E3]"
+                      : "text-[#666666]"
+                  }`}
                   size={24}
                 />
               </button>

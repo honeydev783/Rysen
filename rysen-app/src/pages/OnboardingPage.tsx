@@ -3,6 +3,7 @@ import { IoIosArrowBack } from "react-icons/io";
 import { getAuth } from "firebase/auth";
 import { toast } from "react-hot-toast";
 import api from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 
 interface FormData {
   name: string;
@@ -19,15 +20,24 @@ type Step1NameProps = {
 };
 
 function Step1Name({ formData, setFormData }: Step1NameProps) {
+  const { user, setUser } = useAuth();
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white mb-4">
+      <h1
+        className={`text-[24px] font-roboto font-semibold   mb-4 ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         What is your name?
       </h1>
       <input
         type="text"
         placeholder="Enter your name"
-        className="w-full px-4 py-3 rounded-[8px] bg-[#f5f5f5] dark:bg-[#282828] text-[#333333] dark:text-white placeholder:text-[#aaa] outline-none"
+        className={`w-full px-4 py-3 rounded-[8px]   placeholder:text-[#aaa] outline-none ${
+          user?.theme === "light"
+            ? "bg-[#f5f5f5] text-[#333333]"
+            : "dark:bg-[#282828]  dark:text-white"
+        }`}
         value={formData.name}
         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
       />
@@ -36,8 +46,13 @@ function Step1Name({ formData, setFormData }: Step1NameProps) {
 }
 type ProgressBarProps = { currentStep: number; totalSteps: number };
 function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
+  const { user, setUser } = useAuth();
   return (
-    <div className="flex-1 h-2 bg-[#333333] dark:bg-[#282828] rounded overflow-hidden">
+    <div
+      className={`flex-1 h-2  dark:bg-[#282828] rounded overflow-hidden ${
+        user?.theme === "light" ? "bg-[#EBECF0]" : "bg-[#43454E]"
+      }`}
+    >
       <div
         className="h-full bg-[#DB9A98]"
         style={{ width: `${(currentStep / totalSteps) * 100}%` }}
@@ -54,13 +69,14 @@ type PropsStep2DOB = {
 // Wrapper component to handle Picker props
 
 function Step2DOB({ selectedYear, setSelectedYear }: PropsStep2DOB) {
+  const { user, setUser } = useAuth();
   const yearListRef = useRef(null);
 
   // Generate years from 1900 to current year + 10
   const currentYear = new Date().getFullYear();
   const years = Array.from(
-    { length: currentYear - 1900 + 11 },
-    (_, i) => 1900 + i
+    { length: currentYear - 1910 - 15 },
+    (_, i) => 1910 + i
   );
 
   // Scroll to selected year on mount
@@ -83,7 +99,11 @@ function Step2DOB({ selectedYear, setSelectedYear }: PropsStep2DOB) {
   };
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white mb-4">
+      <h1
+        className={`text-[24px] font-roboto font-semibold  mb-4 ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         What year were you born?
       </h1>
       <div className="relative h-48 overflow-hidden">
@@ -91,25 +111,45 @@ function Step2DOB({ selectedYear, setSelectedYear }: PropsStep2DOB) {
           ref={yearListRef}
           className="absolute inset-0 overflow-y-scroll scrollbar-hide"
         >
-          {years.map((year) => (
-            <div
-              key={year}
-              onClick={() => handleYearClick(year)}
-              className={`flex items-center justify-center h-12 text-[24px] font-roboto font-semibold text-[#ffffff] cursor-pointer transition-colors duration-200 ${
-                year === selectedYear
-                  ? "bg-[#A55D51] text-white font-bold rounded-[80px]"
-                  : "text-gray-700 hover:bg-gray-200 rounded-[80px]"
-              }`}
-            >
-              {year}
-            </div>
-          ))}
+          {years.map((year) =>
+            user?.theme === "light" ? (
+              <div
+                key={year}
+                onClick={() => handleYearClick(year)}
+                className={`flex items-center justify-center h-12 text-[24px] font-roboto font-semibold text-[#BEBEBE] cursor-pointer transition-colors duration-200 ${
+                  year === selectedYear
+                    ? "bg-[#FDEBEA] text-[#333333] font-bold rounded-[80px]"
+                    : "text-gray-700 hover:bg-gray-200 rounded-[80px]"
+                }`}
+              >
+                {year}
+              </div>
+            ) : (
+              <div
+                key={year}
+                onClick={() => handleYearClick(year)}
+                className={`flex items-center justify-center h-12 text-[24px] font-roboto font-semibold text-[#ffffff] cursor-pointer transition-colors duration-200 ${
+                  year === selectedYear
+                    ? "bg-[#A55D51] text-white font-bold rounded-[80px]"
+                    : "text-gray-700 hover:bg-gray-200 rounded-[80px]"
+                }`}
+              >
+                {year}
+              </div>
+            )
+          )}
         </div>
-        {/* Top gradient */}
-        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#171717] to-transparent pointer-events-none z-10" />
-
-        {/* Bottom gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#171717] to-transparent pointer-events-none z-10" />
+        {user?.theme === "light" ? (
+          <>
+            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#FFFFFF] to-transparent pointer-events-none z-10" />
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#FFFFFF] to-transparent pointer-events-none z-10" />
+          </>
+        ) : (
+          <>
+            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#171717] to-transparent pointer-events-none z-10" />
+            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#171717] to-transparent pointer-events-none z-10" />
+          </>
+        )}
       </div>
     </div>
   );
@@ -121,23 +161,40 @@ type Step3GenderProps = {
   setSelected: (s: string) => void;
 };
 function Step3Gender({ selected, setSelected }: Step3GenderProps) {
+  const { user, setUser } = useAuth();
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white mb-4">
+      <h1
+        className={`text-[24px] font-roboto font-semibold   mb-4 ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         What is your gender?
       </h1>
       <div className="flex flex-col gap-2">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => setSelected(opt)}
-            className={`w-full py-3 rounded-[80px] font-roboto font-medium text-white ${
-              selected === opt ? "bg-[#A55D51]" : "bg-[#282828]"
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
+        {options.map((opt) =>
+          user?.theme === "light" ? (
+            <button
+              key={opt}
+              onClick={() => setSelected(opt)}
+              className={`w-full py-3 rounded-[80px] font-roboto font-medium text-[#333333] ${
+                selected === opt ? "bg-[#FDEBEA]" : "bg-[#FAFAFA]"
+              }`}
+            >
+              {opt}
+            </button>
+          ) : (
+            <button
+              key={opt}
+              onClick={() => setSelected(opt)}
+              className={`w-full py-3 rounded-[80px] font-roboto font-medium text-white ${
+                selected === opt ? "bg-[#A55D51]" : "bg-[#282828]"
+              }`}
+            >
+              {opt}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
@@ -161,23 +218,40 @@ const lifeStages = [
 ];
 
 function Step4LifeStage({ selected, setSelected }: Step4LifeStageProps) {
+  const { user, setUser } = useAuth();
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white mb-4">
+      <h1
+        className={`text-[24px] font-roboto font-semibold mb-4 ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         What best describes your life stage?
       </h1>
       <div className="flex flex-col gap-2">
-        {lifeStages.map((stage) => (
-          <button
-            key={stage}
-            onClick={() => setSelected(stage)}
-            className={`w-full py-3 rounded-[80px] font-roboto font-medium text-white ${
-              selected === stage ? "bg-[#A55D51]" : "bg-[#282828]"
-            }`}
-          >
-            {stage}
-          </button>
-        ))}
+        {lifeStages.map((stage) =>
+          user?.theme === "light" ? (
+            <button
+              key={stage}
+              onClick={() => setSelected(stage)}
+              className={`w-full py-3 rounded-[80px] font-roboto font-medium text-[#333333] ${
+                selected === stage ? "bg-[#FDEBEA]" : "bg-[#FAFAFA]"
+              }`}
+            >
+              {stage}
+            </button>
+          ) : (
+            <button
+              key={stage}
+              onClick={() => setSelected(stage)}
+              className={`w-full py-3 rounded-[80px] font-roboto font-medium text-white ${
+                selected === stage ? "bg-[#A55D51]" : "bg-[#282828]"
+              }`}
+            >
+              {stage}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
@@ -222,27 +296,49 @@ function Step5SpiritualMaturity({
   selected,
   setSelected,
 }: Step5SpiritualMaturityProps) {
+  const { user, setUser } = useAuth();
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white">
+      <h1
+        className={`text-[24px] font-roboto font-semibold ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         Where are you in your spiritual journey?
       </h1>
-      <p className="text-[13px] font-roboto text-[#999999] dark:text-[#CCCDD1] mb-4">
+      <p
+        className={`text-[13px] font-roboto   mb-4 ${
+          user?.theme === "light" ? "text-[#666666]" : "dark:text-[#CCCDD1]"
+        }`}
+      >
         Choose the one that best describes your current place with God
       </p>
       <div className="flex flex-col gap-2">
-        {items.map((item) => (
-          <button
-            key={item.title}
-            onClick={() => setSelected(item.title)}
-            className={`w-full text-left px-4 py-3 rounded-[8px] ${
-              selected === item.title ? "bg-[#A55D51]" : "bg-[#282828]"
-            }`}
-          >
-            <div className="text-[15px] text-white">{item.title}</div>
-            <div className="text-[10px] text-white">{item.desc}</div>
-          </button>
-        ))}
+        {items.map((item) =>
+          user?.theme === "light" ? (
+            <button
+              key={item.title}
+              onClick={() => setSelected(item.title)}
+              className={`w-full text-left px-4 py-3 rounded-[8px] ${
+                selected === item.title ? "bg-[#FDEBEA]" : "bg-[#FAFAFA]"
+              }`}
+            >
+              <div className="text-[15px] text-[#333333]">{item.title}</div>
+              <div className="text-[10px] text-[#333333]">{item.desc}</div>
+            </button>
+          ) : (
+            <button
+              key={item.title}
+              onClick={() => setSelected(item.title)}
+              className={`w-full text-left px-4 py-3 rounded-[8px] ${
+                selected === item.title ? "bg-[#A55D51]" : "bg-[#282828]"
+              }`}
+            >
+              <div className="text-[15px] text-white">{item.title}</div>
+              <div className="text-[10px] text-white">{item.desc}</div>
+            </button>
+          )
+        )}
       </div>
     </div>
   );
@@ -265,6 +361,7 @@ const goals = [
 ];
 
 function Step6Goals({ selected, setSelected }: Step6GoalsProps) {
+  const { user, setUser } = useAuth();
   const toggleGoal = (goal: string) => {
     if (selected.includes(goal)) {
       setSelected(selected.filter((g) => g !== goal));
@@ -275,24 +372,44 @@ function Step6Goals({ selected, setSelected }: Step6GoalsProps) {
 
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white">
+      <h1
+        className={`text-[24px] font-roboto font-semibold ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         What are your faith goals?
       </h1>
-      <p className="text-[13px] text-[#999999] dark:text-[#CCCDD1] mb-4">
+      <p
+        className={`text-[13px] mb-4 ${
+          user?.theme === "light" ? "text-[#666666]" : "dark:text-[#CCCDD1]"
+        }`}
+      >
         Select all that apply
       </p>
       <div className="flex flex-col gap-2">
-        {goals.map((goal) => (
-          <button
-            key={goal}
-            onClick={() => toggleGoal(goal)}
-            className={`w-full py-3 rounded-[80px] font-roboto font-medium text-white ${
-              selected.includes(goal) ? "bg-[#A55D51]" : "bg-[#282828]"
-            }`}
-          >
-            {goal}
-          </button>
-        ))}
+        {goals.map((goal) =>
+          user?.theme === "light" ? (
+            <button
+              key={goal}
+              onClick={() => toggleGoal(goal)}
+              className={`w-full py-3 rounded-[80px] font-roboto font-medium text-[#333333] ${
+                selected.includes(goal) ? "bg-[#FDEBEA]" : "bg-[#FAFAFA]"
+              }`}
+            >
+              {goal}
+            </button>
+          ) : (
+            <button
+              key={goal}
+              onClick={() => toggleGoal(goal)}
+              className={`w-full py-3 rounded-[80px] font-roboto font-medium text-white ${
+                selected.includes(goal) ? "bg-[#A55D51]" : "bg-[#282828]"
+              }`}
+            >
+              {goal}
+            </button>
+          )
+        )}
       </div>
     </div>
   );
@@ -330,38 +447,71 @@ function Step7Companion({
   setSelected,
   showDonationPrompt,
 }: Step7CompanionProps) {
+  const { user, setUser } = useAuth();
   return (
     <div>
-      <h1 className="text-[24px] font-roboto font-semibold text-[#333333] dark:text-white">
+      <h1
+        className={`text-[24px] font-roboto font-semibold ${
+          user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+        }`}
+      >
         Who would you like to journey with as your spiritual companion?
       </h1>
-      <p className="text-[13px] text-[#999999] dark:text-[#CCCDD1] mb-4">
+      <p
+        className={`text-[13px] mb-4 ${
+          user?.theme === "light" ? "text-[#666666]" : "dark:text-[#CCCDD1]"
+        }`}
+      >
         You can change it in settings later
       </p>
       <div className="grid grid-cols-2 gap-3 pt-4">
-        {companions.map((comp) => (
-          <div
-            key={comp.name}
-            onClick={() => setSelected(comp.name)}
-            className={`flex flex-col items-center rounded-[10px] overflow-hidden cursor-pointer bg-[#282828]`}
-          >
-            <div className="flex items-center justify-center">
-              <img src={comp.img} />
-            </div>
+        {companions.map((comp) =>
+          user?.theme === "light" ? (
             <div
-              className={`flex justify-center items-center flex-col ${
-                selected === comp.name ? "bg-[#A55D51]" : "bg-[#282828]"
-              }`}
+              key={comp.name}
+              onClick={() => setSelected(comp.name)}
+              className={`flex flex-col items-center rounded-[10px] overflow-hidden cursor-pointer bg-[#282828]`}
             >
-              <div className="text-[15px] text-white px-4  pt-2 ">
-                {comp.name}
+              <div className="flex items-center justify-center">
+                <img src={comp.img} />
               </div>
-              <div className="text-[10px] text-white px-4 pb-4 text-center">
-                {comp.desc}
+              <div
+                className={`flex justify-center items-center flex-col ${
+                  selected === comp.name ? "bg-[#FDEBEA]" : "bg-[#FAFAFA]"
+                }`}
+              >
+                <div className="text-[15px] text-[#666666] px-4  pt-2 ">
+                  {comp.name}
+                </div>
+                <div className="text-[10px] text-[#666666] px-4 pb-4 text-center">
+                  {comp.desc}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            <div
+              key={comp.name}
+              onClick={() => setSelected(comp.name)}
+              className={`flex flex-col items-center rounded-[10px] overflow-hidden cursor-pointer bg-[#282828]`}
+            >
+              <div className="flex items-center justify-center">
+                <img src={comp.img} />
+              </div>
+              <div
+                className={`flex justify-center items-center flex-col ${
+                  selected === comp.name ? "bg-[#A55D51]" : "bg-[#282828]"
+                }`}
+              >
+                <div className="text-[15px] text-white px-4  pt-2 ">
+                  {comp.name}
+                </div>
+                <div className="text-[10px] text-white px-4 pb-4 text-center">
+                  {comp.desc}
+                </div>
+              </div>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
@@ -372,6 +522,7 @@ interface OnboardingPageProps {
 export default function OnboardingPageNew({
   showDonationPrompt,
 }: OnboardingPageProps) {
+  const { user, setUser } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
@@ -447,13 +598,19 @@ export default function OnboardingPageNew({
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className="h-screen bg-[#171717]  dark:bg-[#171717] flex flex-col px-6 pt-6 ">
+    <div
+      className={`h-screen flex flex-col px-6 pt-6 ${
+        user?.theme === "light" ? "bg-white" : "dark:bg-[#171717]"
+      }`}
+    >
       {/* Top row with back arrow & progress bar */}
       <div className="flex items-center gap-2 shrink-0">
         <button onClick={prevStep}>
           <IoIosArrowBack
             size={24}
-            className="text-[#333333] dark:text-white"
+            className={`${
+              user?.theme === "light" ? "text-[#333333]" : "dark:text-white"
+            } `}
           />
         </button>
         <ProgressBar currentStep={step} totalSteps={7} />
@@ -504,12 +661,18 @@ export default function OnboardingPageNew({
       <div className="mb-6 shrink-0">
         <button
           onClick={step < 7 ? nextStep : submitOnboarding}
-          className="w-full bg-[#333333] dark:bg-white text-white dark:text-[#333333] py-3 rounded-[33px] font-roboto font-medium text-[15px]"
+          className={`w-full   py-3 rounded-[33px] font-roboto font-medium text-[15px] ${
+            user?.theme === "light"
+              ? "bg-[#333333] text-white"
+              : "dark:bg-white  dark:text-[#333333]"
+          }`}
         >
           Continue
         </button>
         <div
-          className="mt-2 text-center text-[15px] font-roboto font-medium text-[#999999] cursor-pointer"
+          className={`mt-2 text-center text-[15px] font-roboto font-medium  cursor-pointer ${
+            user?.theme === "light" ? "text-[#717171]" : "text-[#999999]"
+          }`}
           onClick={nextStep}
         >
           Skip

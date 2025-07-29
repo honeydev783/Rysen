@@ -1,36 +1,7 @@
-// import { Dialog } from "@headlessui/react";
-
-// export function DonationPrompt({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-//   return (
-//     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-//       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-//       <div className="fixed inset-0 flex items-center justify-center p-4">
-//         <Dialog.Panel className="w-full max-w-md rounded-xl bg-white dark:bg-gray-800 p-6 shadow-xl">
-//           <Dialog.Title className="text-lg font-bold mb-4">Support Rysen with a Donation</Dialog.Title>
-//           <p className="mb-4">
-//             If Rysen has blessed you, consider supporting this spiritual companion with a donation.
-//           </p>
-//           <button
-//             className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded mb-2"
-//             onClick={() => {
-//               onClose();
-//               // redirect to Stripe checkout
-//               window.location.href = "/donate";
-//             }}
-//           >
-//             Donate Now
-//           </button>
-//           <button className="w-full text-gray-600 dark:text-gray-300 py-2" onClick={onClose}>
-//             Maybe Later
-//           </button>
-//         </Dialog.Panel>
-//       </div>
-//     </Dialog>
-//   );
-// }
 import { useState } from "react";
 import api from "../utils/api";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 interface DonationModalProps {
   // email: string; // user email from auth context
   onClose: () => void;
@@ -46,7 +17,7 @@ export default function DonationModal({
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isRecurring, setIsRecurring] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const { user, setuser } = useAuth();
   const predefined = [10, 20, 50, 100, 250];
   const onSkip = () => {
     console.log("User skipped donation prompt");
@@ -75,43 +46,68 @@ export default function DonationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
-      <div className="bg-[#171717] rounded-xl w-full max-w-md shadow-xl relative mx-4 rounded-[8px] text-white">
-        <h2 className="font-roboto text-[24px] font-semibold text-center mb-4 mt-[40px]">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60`}
+    >
+      <div
+        className={`rounded-xl w-full max-w-md shadow-xl relative mx-4 rounded-[8px] text-white ${
+          user?.theme === "light" ? "bg-white" : "bg-[#171717]"
+        }`}
+      >
+        <h2
+          className={`font-roboto text-[24px] font-semibold text-center mb-4 mt-[40px] ${
+            user?.theme === "light" ? "text-[#333333]" : "text-[#FFFFFF]"
+          }`}
+        >
           Would you consider supporting this mission?
         </h2>
 
         <div className="flex flex-wrap gap-2 justify-center mb-4">
-          {predefined.map((amt) => (
-            <button
-              key={amt}
-              onClick={() => {
-                setAmount(amt);
-                setCustomAmount(amt.toString());
-              }}
-              className={`px-4 py-2 rounded-[80px] border ${
-                amount === amt ? "bg-[#A55D51] text-white" : "bg-[#282828]"
-              }`}
-            >
-              ${amt}
-            </button>
-          ))}
+          {predefined.map((amt) =>
+            user?.theme === "light" ? (
+              <button
+                key={amt}
+                onClick={() => {
+                  setAmount(amt);
+                  setCustomAmount(amt.toString());
+                }}
+                className={`px-4 py-2 rounded-[80px] border ${
+                  amount === amt ? "bg-[#FDEBEA] text-[#333333]" : "bg-[#FAFAFA] text-[#333333]"
+                }`}
+              >
+                ${amt}
+              </button>
+            ) : (
+              <button
+                key={amt}
+                onClick={() => {
+                  setAmount(amt);
+                  setCustomAmount(amt.toString());
+                }}
+                className={`px-4 py-2 rounded-[80px] border ${
+                  amount === amt ? "bg-[#A55D51] text-white" : "bg-[#282828]"
+                }`}
+              >
+                ${amt}
+              </button>
+            )
+          )}
         </div>
 
         {/* spacing 16 */}
         <div className="m-4 flex items-center justify-center gap-2 text-[#999] dark:text-[#CCCDD1]">
-          <div className="flex-1 h-px bg-[#ccc] dark:bg-[#333]" />
-          <span className="text-[13px] font-roboto text-[13px]">
+          <div className={`flex-1 h-px   ${user?.theme === "light" ? "bg-[#ccc]" : "dark:bg-[#333]" }`} />
+          <span className={`font-roboto text-[13px] ${user?.theme === "light" ? "text-[#666666]" : "text-[#ffffff]" }`}>
             or custom amount
           </span>
-          <div className="flex-1 h-px bg-[#ccc] dark:bg-[#333]" />
+          <div className={`flex-1 h-px   ${user?.theme === "light" ? "bg-[#ccc]" : "dark:bg-[#333]" }`} />
         </div>
 
         <div className="flex flex-wrap gap-2 justify-center mb-4 px-4">
           <input
             type="string"
             placeholder="$"
-            className="w-full p-2 mb-4  rounded-[6px] bg-[#282828] "
+            className={`w-full p-2 mb-4  rounded-[6px] ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-[#333333]" }`}
             value={`$${customAmount}`}
             onChange={(e) => {
               setAmount(null);
@@ -122,12 +118,12 @@ export default function DonationModal({
             }}
           />
 
-          <label className="w-full flex items-center mb-4 font-roboto text-[#ffffff]  text-[15px]">
+          <label className={`w-full flex items-center mb-4 font-roboto text-[15px] ${user?.theme === "light" ? "text-[#333333]" : "text-[#ffffff]" }`}>
             <input
               type="checkbox"
               checked={isRecurring}
               onChange={(e) => setIsRecurring(e.target.checked)}
-              className="accent-[#494A51] w-4 h-4 bg-[#282828] border border-[#494A51] mr-2"
+              className={`accent-[#494A51] w-4 h-4  border border-[#494A51] mr-2 x`}
             />
             Make this recurring donation
           </label>
@@ -136,14 +132,14 @@ export default function DonationModal({
         <div className="m-4">
           <button
             onClick={handleDonate}
-            className="w-full bg-[#333333] dark:bg-white text-white dark:text-[#333333] py-3 rounded-[33px] font-roboto font-medium text-[15px]"
+            className={`w-full  text-white  py-3 rounded-[33px] font-roboto font-medium text-[15px] ${user?.theme === "light" ? "bg-[#333333] text-[#FFFFFF]" : "dark:bg-white text-[#333333]" }`}
             disabled={loading}
           >
             {loading ? "Redirecting..." : "Donate"}
           </button>
           {showSkipping && (
             <div
-              className="mt-2 text-center text-[15px] font-roboto font-medium text-[#999999] cursor-pointer"
+              className={`mt-2 text-center text-[15px] font-roboto font-medium text-[#999999] cursor-pointer ${user?.theme === "light" ? "text-[#717171]" : "text-[#999999]" }`}
               onClick={onSkip}
             >
               Not now
