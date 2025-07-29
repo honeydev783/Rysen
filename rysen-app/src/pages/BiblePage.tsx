@@ -587,8 +587,7 @@ const BiblePage = () => {
                 {massReadings?.date}
               </h2>
               <h3 className={`text-[17px] font-semibold ${user?.theme==="light" ? "text-[#333333]" : "text-white"}}`}>
-                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))}
-                Week in {massReadings?.season_week} (Year {massReadings?.year})
+                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))} Week in {massReadings?.season_week} (Year {massReadings?.year})
               </h3>
             </div>
 
