@@ -165,7 +165,7 @@ async def list_sessions(
         .where(models.ChatSession.created_at > thirty_days_ago)
         .where(models.ChatSession.topic == "chat")
         .order_by(models.ChatSession.created_at.desc())
-        .limit(limit)
+        
     )
     sessions = []
     for s in q.fetchall():
@@ -174,6 +174,7 @@ async def list_sessions(
             .where(models.Message.chat_session_id == s.id)
             .order_by(models.Message.timestamp)
         )
+        
         messages = [
             {
                 "id": row.id,
@@ -183,15 +184,16 @@ async def list_sessions(
             }
             for row in m.fetchall()
         ]
-        sessions.append(
-            {
-                "id": s.id,
-                "created_at": s.created_at.isoformat(),
-                "topic": s.topic,
-                "summary": s.summary,
-                "messages": messages,
-            }
-        )
+        if messages:
+            sessions.append(
+                {
+                    "id": s.id,
+                    "created_at": s.created_at.isoformat(),
+                    "topic": s.topic,
+                    "summary": s.summary,
+                    "messages": messages,
+                }
+            )
     return {"sessions": sessions}
 
 
@@ -343,9 +345,9 @@ async def generate_saint_reading(
 
             Format:
             1. Start with the saint's name in **bold**.
-            2. A 2-sentence overview of who the saint is and why they're significant in normal text not in bold.
-            3. 3 sentences about their time period, origin, and historical context in normal text not in bold.
-            4. 3–4 sentences about their key works, teachings, and notable quotes in normal text not in bold.
+            2. A 2-sentence overview of who the saint is and why they're significant. Do not include in **bold**.
+            3. 3 sentences about their time period, origin, and historical context.  Do not include in **bold**.
+            4. 3–4 sentences about their key works, teachings, and notable quotes. Do not include in **bold**.
             5. A 3–4 sentence prayer of intercession in **bold**. For Pio and Therese, reference Mary. For Kim and Dan, include patronage or a relevant saint. End with: “Saint [Name], pray for us. Amen.” in **bold**
 
             Saint: {request.saint_name}
@@ -431,9 +433,8 @@ async def generate_scripture_reading_api(
             2. Scripture reference — use: {request.scripture_reference}.
             3. A one-sentence overview briefly summarizing what the passage contains.
             4. The full text of the passage, formatted so that:
-                - Each verse starts on a new line.
-                - Verse numbers appear in parentheses at the start of each line in bold and Verse text itself is started next to Verse number.
-                - Verse text itself is in bold (use actual font styling, not markdown asterisks).
+                - Each verse starts with Verse number in parentheses and verse text.
+                - Verse number and Verse text itself is in **(verse number) verse text** (use actual font styling, not markdown asterisks).
             - Do NOT include commentary, footnotes, headings, or cross-references.
             - Keep formatting faithful to the translation’s style.
 
@@ -611,6 +612,7 @@ async def study_bible(
             **Theological Study** –
             - Offer historical context *only if* it significantly clarifies the verse’s meaning.
             - Include any relevant cross-references to other Scriptures (e.g., Old Testament connections, Christ’s fulfillment of prophecy).
+            - any verse or scripture in *semi-bold*
             - Add 1–2 sentences from theologians, Saints, or Bible scholars, clearly attributed (e.g., *St. Augustine wrote...*).
             - Include insights from the Catechism of the Catholic Church or Church teaching *only if directly relevant*, and do not include paragraph numbers.
 

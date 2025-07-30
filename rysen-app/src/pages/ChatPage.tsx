@@ -38,12 +38,34 @@ interface ChatSession {
   messages: Message[];
   created_at: string;
 }
+// const parseBoldItalicText = (text: string) => {
+//   const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
+
+//   return parts.map((part, i) => {
+//     if (/^\*\*[\s\S]*\*\*$/.test(part)) {
+//       const content = part.slice(2, -2); // remove the leading and trailing **
+//       return (
+//         <span key={i} className="font-bold italic whitespace-pre-line block">
+//           {content}
+//         </span>
+//       );
+//     } else {
+//       return (
+//         <span key={i} className="whitespace-pre-line block">
+//           {part}
+//         </span>
+//       );
+//     }
+//   });
+// };
 const parseBoldItalicText = (text: string) => {
-  const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
+  // Match both **bold** and *bold*
+  const parts = text.split(/(\*\*[\s\S]*?\*\*|\*[\s\S]*?\*)/g);
 
   return parts.map((part, i) => {
-    if (/^\*\*[\s\S]*\*\*$/.test(part)) {
-      const content = part.slice(2, -2); // remove the leading and trailing **
+    // Match **bold** or *bold*
+    if (/^\*\*[\s\S]*\*\*$/.test(part) || /^\*[\s\S]*\*$/.test(part)) {
+      const content = part.startsWith('**') ? part.slice(2, -2) : part.slice(1, -1);
       return (
         <span key={i} className="font-bold italic whitespace-pre-line block">
           {content}
@@ -160,7 +182,7 @@ const ChatPage = () => {
   const loadSessions = async () => {
     try {
       const res = await api.get("/api/chat/sessions?limit=3&uid=" + user?.uid);
-      setChatSessions(res.data.sessions);
+      setChatSessions(res.data.sessions.slice(0, 3));
       console.log("Loaded sessions:", res.data.sessions);
       startNewSession();
       // if (res.data.sessions.length > 0) {
@@ -204,7 +226,7 @@ const ChatPage = () => {
       };
       setCurrentSession(newSession);
       setMessages([welcomeMsg]);
-      setChatSessions((prev) => [newSession, ...prev].slice(0, 3));
+      // setChatSessions((prev) => [newSession, ...prev].slice(0, 3));
     } catch (err) {
       console.error("Failed to create session", err);
     }

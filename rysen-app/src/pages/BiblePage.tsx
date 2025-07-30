@@ -90,12 +90,34 @@ const getPlaceholderByKey = (key: string) => {
   const found = avatarOptions.find((item) => item.key === key);
   return found?.placeholder || "Bring your intention to the Lord";
 };
+// const parseBoldItalicText = (text: string) => {
+//   const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
+
+//   return parts.map((part, i) => {
+//     if (/^\*\*[\s\S]*\*\*$/.test(part)) {
+//       const content = part.slice(2, -2); // remove the leading and trailing **
+//       return (
+//         <span key={i} className="font-bold italic whitespace-pre-line block">
+//           {content}
+//         </span>
+//       );
+//     } else {
+//       return (
+//         <span key={i} className="whitespace-pre-line block">
+//           {part}
+//         </span>
+//       );
+//     }
+//   });
+// };
 const parseBoldItalicText = (text: string) => {
-  const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
+  // Match both **bold** and *bold*
+  const parts = text.split(/(\*\*[\s\S]*?\*\*|\*[\s\S]*?\*)/g);
 
   return parts.map((part, i) => {
-    if (/^\*\*[\s\S]*\*\*$/.test(part)) {
-      const content = part.slice(2, -2); // remove the leading and trailing **
+    // Match **bold** or *bold*
+    if (/^\*\*[\s\S]*\*\*$/.test(part) || /^\*[\s\S]*\*$/.test(part)) {
+      const content = part.startsWith('**') ? part.slice(2, -2) : part.slice(1, -1);
       return (
         <span key={i} className="font-bold italic whitespace-pre-line block">
           {content}
@@ -110,6 +132,7 @@ const parseBoldItalicText = (text: string) => {
     }
   });
 };
+
 const getAvatarFileName = (user: any) => {
   console.log("avatar user===>", user);
   if (user.avatar == "Pio" && user.theme == "dark") {
@@ -639,8 +662,7 @@ const BiblePage = () => {
                   user?.theme === "light" ? "text-[#333333]" : "text-white"
                 }}`}
               >
-                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))}
-                Week in {massReadings?.season_week} (Year {massReadings?.year})
+                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))} Week in {massReadings?.season_week} (Year {massReadings?.year})
               </h3>
             </div>
 

@@ -35,7 +35,7 @@ const avatarOptions = [
     darkimage: "/avatars/Pio - Dark mode.svg",
     lightimage: "/avatars/Pio - Light mode.svg",
     message:
-      "Welcome. You are not alone in what you carry today. God already sees the depths of your heart.If the words feel far away, that’s okay - just share what’s on your heart.This space will help you by giving you a prayer you can offer to God. ** “The Lord is close to the brokenhearted; He rescues those whose spirits are crushed.” (Psalm 34:18)**",
+      "Welcome. You are not alone in what you carry today. God already sees the depths of your heart.If the words feel far away, that’s okay - just share what’s on your heart.This space will help you by giving you a prayer you can offer to God. \n\n ** “The Lord is close to the brokenhearted; He rescues those whose spirits are crushed.” (Psalm 34:18)**",
     placeholder: "Bring your intention to the Lord",
   },
   {
@@ -44,7 +44,7 @@ const avatarOptions = [
     darkimage: "/avatars/Therese - Dark mode.svg",
     lightimage: "/avatars/Therese - Light mode.svg",
     message:
-      "Peace to your heart.Even a few honest words can be a beautiful prayer. If you don’t know what to say, simply write what you are feeling - a sorrow, a hope, or something you are thankful for. This space will gently help you find the words to speak with Jesus in prayer. **“Even before a word is on my tongue, Lord, You know it completely.” (Psalm 139:4)**",
+      "Peace to your heart.Even a few honest words can be a beautiful prayer. If you don’t know what to say, simply write what you are feeling - a sorrow, a hope, or something you are thankful for. This space will gently help you find the words to speak with Jesus in prayer. \n\n **“Even before a word is on my tongue, Lord, You know it completely.” (Psalm 139:4)**",
     placeholder: "Share your heart with Jesus",
   },
   {
@@ -53,7 +53,7 @@ const avatarOptions = [
     darkimage: "/avatars/Dan - Dark mode.svg",
     lightimage: "/avatars/Dan - Light mode.svg",
     message:
-      "Welcome. It’s good that you’re here. If something’s weighing on you, or even just stirring inside - take a moment to write it down. This space will help by turning your words into a prayer you can speak to God. **“Cast all your cares on Him, because He cares for you.” (1 Peter 5:7)** ",
+      "Welcome. It’s good that you’re here. If something’s weighing on you, or even just stirring inside - take a moment to write it down. This space will help by turning your words into a prayer you can speak to God. \n\n **“Cast all your cares on Him, because He cares for you.” (1 Peter 5:7)** ",
     placeholder: "Whatever’s on your mind, place it here in prayer.",
   },
   {
@@ -75,12 +75,34 @@ const getPlaceholderByKey = (key: string) => {
   const found = avatarOptions.find((item) => item.key === key);
   return found?.placeholder || "Bring your intention to the Lord";
 };
+// const parseBoldItalicText = (text: string) => {
+//   const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
+
+//   return parts.map((part, i) => {
+//     if (/^\*\*[\s\S]*\*\*$/.test(part)) {
+//       const content = part.slice(2, -2); // remove the leading and trailing **
+//       return (
+//         <span key={i} className="font-bold italic whitespace-pre-line block">
+//           {content}
+//         </span>
+//       );
+//     } else {
+//       return (
+//         <span key={i} className="whitespace-pre-line block">
+//           {part}
+//         </span>
+//       );
+//     }
+//   });
+// };
 const parseBoldItalicText = (text: string) => {
-  const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
+  // Match both **bold** and *bold*
+  const parts = text.split(/(\*\*[\s\S]*?\*\*|\*[\s\S]*?\*)/g);
 
   return parts.map((part, i) => {
-    if (/^\*\*[\s\S]*\*\*$/.test(part)) {
-      const content = part.slice(2, -2); // remove the leading and trailing **
+    // Match **bold** or *bold*
+    if (/^\*\*[\s\S]*\*\*$/.test(part) || /^\*[\s\S]*\*$/.test(part)) {
+      const content = part.startsWith('**') ? part.slice(2, -2) : part.slice(1, -1);
       return (
         <span key={i} className="font-bold italic whitespace-pre-line block">
           {content}
@@ -95,7 +117,6 @@ const parseBoldItalicText = (text: string) => {
     }
   });
 };
-
 const getAvatarFileName = (user: any) => {
   console.log("avatar user===>", user);
   if (user.avatar == "Pio" && user.theme == "dark") {
