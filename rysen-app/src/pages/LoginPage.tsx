@@ -62,6 +62,7 @@ export default function LoginPage() {
         uid: userData.uid,
         theme: userData.theme,
         responseStyle: userData.responseStyle,
+        avatar: userData.avatar
       });
 
       if (userData.onboarded) {

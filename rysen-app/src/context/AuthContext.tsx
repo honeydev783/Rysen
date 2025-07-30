@@ -6,7 +6,6 @@ import api from "../utils/api";
 import { setPersistence, browserLocalPersistence } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
-
 interface User {
   uid: string;
   name: string;
@@ -15,6 +14,7 @@ interface User {
   email: string;
   theme: string;
   responseStyle: string;
+  avatar: string;
 }
 interface AuthContextType {
   user: User | null;
@@ -47,14 +47,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setPersistence(auth, browserLocalPersistence)
       .then(() => {
         onAuthStateChanged(auth, async (firebaseUser) => {
+          // if (firebaseUser) {
+          //   const idToken = await getIdToken(firebaseUser);
+          //   console.log("idToken", idToken)
+          //   const uid = firebaseUser.uid;
+          //   console.log("uid=====>", uid);
+          //   const docRef = doc(db, "users", uid);
+          //   const snap = await getDoc(docRef);
+          //   const userData = snap.data();
+          //   console.log("userData in context===>", userData)
+          //   setUser({
+          //     name: userData.name,
+          //     login_count: userData.login_count,
+          //     email: userData.email,
+          //     onboarded: userData.onboarded,
+          //     uid: userData.uid,
+          //     theme: userData.theme,
+          //     responseStyle: userData.responseStyle
+          //   });
+          //   setToken(idToken);
+          //   setOnboardingComplete(userData.onboarded);
+          //   setLoginCount(userData.login_count);
+          // } else {
+          //   setUser(null);
+          //   setToken(null);
+          //   setOnboardingComplete(false);
+          //   setLoginCount(0);
+          // }
+          // setLoading(false); // ✅ done initializing
           if (firebaseUser) {
             const idToken = await getIdToken(firebaseUser);
-            //
             const uid = firebaseUser.uid;
             const docRef = doc(db, "users", uid);
-            const snap = await getDoc(docRef);
-            const userData = snap.data();
-            console.log("userData in context===>", userData)
+
+            let userData = null;
+            let snap = null;
+
+            // Wait and retry until doc exists (be careful: infinite loop risk)
+            while (true) {
+              snap = await getDoc(docRef);
+              if (snap.exists()) {
+                userData = snap.data();
+                break;
+              }
+              // Optional: wait 500ms before retrying
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
+            console.log("userData in context===>", userData);
+
             setUser({
               name: userData.name,
               login_count: userData.login_count,
@@ -62,7 +103,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               onboarded: userData.onboarded,
               uid: userData.uid,
               theme: userData.theme,
-              responseStyle: userData.responseStyle
+              responseStyle: userData.responseStyle,
+              avatar: userData.avatar
             });
             setToken(idToken);
             setOnboardingComplete(userData.onboarded);
@@ -73,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setOnboardingComplete(false);
             setLoginCount(0);
           }
-          setLoading(false); // ✅ done initializing
+          setLoading(false);
         });
       })
       .catch((err) => {

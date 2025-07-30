@@ -94,13 +94,13 @@ class AuthRequest(BaseModel):
     email: str
 # Onboarding data model
 class OnboardingData(BaseModel):
-    name: str
-    ageRange: str
-    sex: str
-    lifeStage: str
-    spiritualMaturity: str  # 1–3
-    spiritualGoals: List[str]
-    avatar: str  # key from avatarOptions
+    name: Optional[str]
+    ageRange: Optional[str]
+    sex: Optional[str]
+    lifeStage: Optional[str]
+    spiritualMaturity: Optional[str]  # 1–3
+    spiritualGoals: Optional[List[str]]
+    avatar: Optional[str]  # key from avatarOptions
 
 def verify_firebase_token(authorization: Optional[str] = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
@@ -139,6 +139,7 @@ async def signup(data: TokenRequest):
             "onboarded": False,
             "theme": "light",
             "responseStyle": "default",
+            "avatar": "Thérèse", 
             "created_at": datetime.utcnow(),
         }
 
@@ -152,6 +153,7 @@ async def signup(data: TokenRequest):
             "login_count": 0,
             "onboarded": False,
             "theme": "light",
+            "avatar": "Thérèse", 
             "responseStyle": "default",
         }
 
@@ -179,6 +181,7 @@ async def signin(data: TokenRequest):
                 "onboarded": False,
                 "theme" : "light",
                 "responseStyle": "default",
+                "avatar": "Thérèse",
                 "created_at": datetime.utcnow(),
             }
 
@@ -191,6 +194,7 @@ async def signin(data: TokenRequest):
                 "login_count": 1,
                 "theme" : "light",
                 "responseStyle": "default",
+                "avatar": "Thérèse", 
                 "onboarded": user_data.get("onboarded", False),
             }
 
@@ -200,6 +204,7 @@ async def signin(data: TokenRequest):
         user_ref.update({"login_count": login_count, "last_login": datetime.utcnow()})
         uid = user_data.get("uid", "")
         theme = user_data.get("theme", "light")
+        avatar = user_data.get("avatar", "Thérèse")
         responseStyle = user_data.get("responseStyle", "default")
         return {
             "message": "Signin successful",
@@ -209,6 +214,7 @@ async def signin(data: TokenRequest):
             "login_count": login_count,
             "theme": theme,
             "responseStyle": responseStyle,
+            "avatar": avatar,
             "onboarded": user_data.get("onboarded", False),
         }
 
@@ -221,13 +227,13 @@ def save_onboarding(data: OnboardingData, uid: str = Depends(verify_firebase_tok
     user_ref = db.collection("users").document(uid)
 
     user_ref.set({
-        "name": data.name,
-        "age_range": data.ageRange,
-        "sex": data.sex,
-        "life_stage": data.lifeStage,
-        "spiritual_maturity": data.spiritualMaturity,
+        "name": data.name if data.name is not None else "",
+        "age_range": data.ageRange if data.ageRange is not None else "",
+        "sex": data.sex if data.sex is not None else "",
+        "life_stage": data.lifeStage if data.lifeStage is not None else "",
+        "spiritual_maturity": data.spiritualMaturity if data.spiritualMaturity is not None else "",
         "spiritual_goals": data.spiritualGoals,
-        "avatar": data.avatar,
+        "avatar": data.avatar if data.avatar is not None else "",
         "onboarded": True,
     }, merge=True)
 

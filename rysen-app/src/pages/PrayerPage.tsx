@@ -96,6 +96,27 @@ const parseBoldItalicText = (text: string) => {
   });
 };
 
+const getAvatarFileName = (user: any) => {
+  console.log("avatar user===>", user);
+  if (user.avatar == "Pio" && user.theme == "dark") {
+    return "Pio - Dark mode.svg";
+  } else if (user.avatar == "Pio" && user.theme == "light") {
+    return "Pio - Light mode.svg";
+  } else if (user.avatar == "Kim" && user.theme == "light") {
+    return "Kim - Light mode.svg";
+  } else if (user.avatar == "Kim" && user.theme == "dark") {
+    return "Kim - Dark mode.svg";
+  } else if (user.avatar == "Dan" && user.theme == "light") {
+    return "Dan - Light mode.svg";
+  } else if (user.avatar == "Dan" && user.theme == "dark") {
+    return "Dan - Dark mode.svg";
+  } else if (user.avatar == "Thérèse" && user.theme == "light") {
+    return "Therese - Light mode.svg";
+  } else if (user.avatar == "Thérèse" && user.theme == "dark") {
+    return "Therese - Dark mode.svg";
+  }
+};
+
 const PrayerPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -123,6 +144,8 @@ const PrayerPage = () => {
     avatar: "",
   });
   const [showButtons, setShowButtons] = useState(false);
+  const [avatarFile, setAvatarFile] = useState("");
+
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
@@ -159,7 +182,13 @@ const PrayerPage = () => {
 
     return () => clearInterval(interval);
   }, [isTyping]);
-
+  useEffect(() => {
+    if (user?.uid) {
+      const fileName = getAvatarFileName(user);
+      console.log("file name==>", fileName);
+      setAvatarFile(fileName);
+    }
+  }, [user]);
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -308,53 +337,68 @@ const PrayerPage = () => {
             : "bg-gradient-to-b from-[#27234E] to-[#17161C] text-white"
         }`}
       >
-        {messages.map((msg, idx) =>
-          user?.theme === "light" ? (
-            <div
-              key={idx}
-              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative  font-roboto font-mixed text-[15px]
+        {messages.map((msg, idx) => (
+          <div>
+            {(msg.sender === "ai" || msg.sender === "typing") && idx!= 0 && (
+              <div className="flex flex-row justify-content items-center px-4">
+                <div>
+                  <img
+                    src={`/avatars/${avatarFile}`}
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
+                </div>
+                <div className={`pl-3 font-roboto font-regular text-[13px] ${user?.theme === "light" ? "text-[#666666]" : "text-[#CCCDD1]"}`}>
+                  {user?.avatar}
+                </div>
+              </div>
+            )}
+            {user?.theme === "light" ? (
+              <div
+                key={idx}
+                className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative  font-roboto font-mixed text-[15px]
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left"
                 : "bg-[#D0ECF3]  self-end text-right ml-auto"
             }`}
-            >
-              {msg.sender === "typing"
-                ? typingText
-                : parseBoldItalicText(msg.text)}
+              >
+                {msg.sender === "typing"
+                  ? typingText
+                  : parseBoldItalicText(msg.text)}
 
-              {msg.sender === "ai" && idx !== 0 && (
-                <FeedbackIcons
-                  msg={msg}
-                  handleFeedback={handleFeedback}
-                  userEmail={user?.email}
-                />
-              )}
-            </div>
-          ) : (
-            <div
-              key={idx}
-              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative  font-roboto font-mixed text-[15px]
+                {msg.sender === "ai" && idx !== 0 && (
+                  <FeedbackIcons
+                    msg={msg}
+                    handleFeedback={handleFeedback}
+                    userEmail={user?.email}
+                  />
+                )}
+              </div>
+            ) : (
+              <div
+                key={idx}
+                className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative  font-roboto font-mixed text-[15px]
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left"
                 : "bg-[#976B19]  self-end text-right ml-auto"
             }`}
-            >
-              {msg.sender === "typing"
-                ? typingText
-                : parseBoldItalicText(msg.text)}
+              >
+                {msg.sender === "typing"
+                  ? typingText
+                  : parseBoldItalicText(msg.text)}
 
-              {msg.sender === "ai" && idx !== 0 && (
-                <FeedbackIcons
-                  msg={msg}
-                  handleFeedback={handleFeedback}
-                  userEmail={user?.email}
-                />
-              )}
-            </div>
-          )
-        )}
+                {msg.sender === "ai" && idx !== 0 && (
+                  <FeedbackIcons
+                    msg={msg}
+                    handleFeedback={handleFeedback}
+                    userEmail={user?.email}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        ))}
         <div ref={chatEndRef} />
       </div>
 

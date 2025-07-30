@@ -44,6 +44,9 @@ const HomeScreen = () => {
         email: userData.email,
         onboarded: userData.onboarded,
         uid: userData.uid,
+        theme: userData.theme,
+        responseStyle: userData.responseStyle,
+        avatar: userData.avatar,
       });
 
       if (userData.onboarded) {

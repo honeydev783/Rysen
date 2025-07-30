@@ -58,6 +58,26 @@ const parseBoldItalicText = (text: string) => {
     }
   });
 };
+const getAvatarFileName = (user: any) => {
+  console.log("avatar user===>", user);
+  if (user.avatar == "Pio" && user.theme == "dark") {
+    return "Pio - Dark mode.svg";
+  } else if (user.avatar == "Pio" && user.theme == "light") {
+    return "Pio - Light mode.svg";
+  } else if (user.avatar == "Kim" && user.theme == "light") {
+    return "Kim - Light mode.svg";
+  } else if (user.avatar == "Kim" && user.theme == "dark") {
+    return "Kim - Dark mode.svg";
+  } else if (user.avatar == "Dan" && user.theme == "light") {
+    return "Dan - Light mode.svg";
+  } else if (user.avatar == "Dan" && user.theme == "dark") {
+    return "Dan - Dark mode.svg";
+  } else if (user.avatar == "Thérèse" && user.theme == "light") {
+    return "Therese - Light mode.svg";
+  } else if (user.avatar == "Thérèse" && user.theme == "dark") {
+    return "Therese - Dark mode.svg";
+  }
+};
 const ChatPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -75,7 +95,7 @@ const ChatPage = () => {
   const { isRecording, startRecording, stopRecording } = useVoiceRecorder();
   const chatEndRef = useRef<HTMLDivElement>(null);
   const pendingFollowUpRef = useRef<string | null>(null);
-
+  const [avatarFile, setAvatarFile] = useState("");
   const [userProfile, setUserProfile] = useState({
     name: "",
     age_range: "",
@@ -118,7 +138,12 @@ const ChatPage = () => {
   }, [isTyping]);
 
   useEffect(() => {
-    if (user?.uid) loadSessions();
+    if (user?.uid) {
+      loadSessions();
+      const fileName = getAvatarFileName(user);
+      console.log("file name==>", fileName);
+      setAvatarFile(fileName);
+    }
   }, [user]);
 
   useEffect(() => {
@@ -388,6 +413,19 @@ const ChatPage = () => {
       >
         {messages.map((msg, idx) => (
           <div>
+            {(msg.sender === "ai" || msg.sender === "typing") && idx!= 0 && (
+              <div className="flex flex-row justify-content items-center px-4">
+                <div>
+                  <img
+                    src={`/avatars/${avatarFile}`}
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
+                </div>
+                <div className={`pl-3 font-roboto font-regular text-[13px] ${user?.theme === "light" ? "text-[#666666]" : "text-[#CCCDD1]"}`}>
+                  {user?.avatar}
+                </div>
+              </div>
+            )}
             {user?.theme === "light" ? (
               <div
                 key={idx}
@@ -478,7 +516,9 @@ const ChatPage = () => {
           <div className="flex flex-row justify-between w-full py-2 px-2">
             {user?.theme === "light" ? (
               <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
-                <Mic className={isRecording ? `text-red-500` : `text-[#666666]`} />
+                <Mic
+                  className={isRecording ? `text-red-500` : `text-[#666666]`}
+                />
               </button>
             ) : (
               <button onClick={handleMicClick} className={`p-2 rounded-xl`}>
@@ -489,9 +529,18 @@ const ChatPage = () => {
             <button
               onClick={handleSend}
               disabled={isLoading}
-              className={` rounded-full p-2 ${user?.theme === "light" ? "bg-[#3D3D3D] text-[#E3E3E3]" : "bg-white text-white"}`}
+              className={` rounded-full p-2 ${
+                user?.theme === "light"
+                  ? "bg-[#3D3D3D] text-[#E3E3E3]"
+                  : "bg-white text-white"
+              }`}
             >
-              <FaTelegramPlane className={` rotate-45 ${user?.theme === "light" ? "text-[#E3E3E3]" : "text-[#666666]"}`} size={24} />
+              <FaTelegramPlane
+                className={` rotate-45 ${
+                  user?.theme === "light" ? "text-[#E3E3E3]" : "text-[#666666]"
+                }`}
+                size={24}
+              />
             </button>
           </div>
         </div>

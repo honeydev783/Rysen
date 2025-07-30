@@ -23,8 +23,8 @@ const WelcomePage = () => {
     <div className="relative min-h-screen bg-[#171717]">
       {/* Fullscreen GIF background */}
       <img
-        src="/Welcome.png"
-        alt="HomePage"
+        src="/welcome.jpg"
+        alt="WelcomePage"
         className="absolute inset-0 object-cover w-full h-full"
       />
 

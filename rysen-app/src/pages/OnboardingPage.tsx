@@ -71,7 +71,6 @@ type PropsStep2DOB = {
 function Step2DOB({ selectedYear, setSelectedYear }: PropsStep2DOB) {
   const { user, setUser } = useAuth();
   const yearListRef = useRef(null);
-
   // Generate years from 1900 to current year + 10
   const currentYear = new Date().getFullYear();
   const years = Array.from(
@@ -524,7 +523,7 @@ export default function OnboardingPageNew({
 }: OnboardingPageProps) {
   const { user, setUser } = useAuth();
   const [step, setStep] = useState(1);
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(1996);
   const [selectedGender, setSelectedGender] = useState<string | null>(null);
   const [selectedLifeStage, setSelectedLifeStage] = useState<string | null>(
     null
@@ -534,7 +533,7 @@ export default function OnboardingPageNew({
   >(null);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [selectedCompanion, setSelectedCompanion] = useState<string | null>(
-    null
+    "Thérèse"
   );
 
   const [formData, setFormData] = useState<{

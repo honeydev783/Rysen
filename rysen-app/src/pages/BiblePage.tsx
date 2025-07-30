@@ -110,7 +110,26 @@ const parseBoldItalicText = (text: string) => {
     }
   });
 };
-
+const getAvatarFileName = (user: any) => {
+  console.log("avatar user===>", user);
+  if (user.avatar == "Pio" && user.theme == "dark") {
+    return "Pio - Dark mode.svg";
+  } else if (user.avatar == "Pio" && user.theme == "light") {
+    return "Pio - Light mode.svg";
+  } else if (user.avatar == "Kim" && user.theme == "light") {
+    return "Kim - Light mode.svg";
+  } else if (user.avatar == "Kim" && user.theme == "dark") {
+    return "Kim - Dark mode.svg";
+  } else if (user.avatar == "Dan" && user.theme == "light") {
+    return "Dan - Light mode.svg";
+  } else if (user.avatar == "Dan" && user.theme == "dark") {
+    return "Dan - Dark mode.svg";
+  } else if (user.avatar == "Thérèse" && user.theme == "light") {
+    return "Therese - Light mode.svg";
+  } else if (user.avatar == "Thérèse" && user.theme == "dark") {
+    return "Therese - Dark mode.svg";
+  }
+};
 const BiblePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -143,6 +162,7 @@ const BiblePage = () => {
   const [showNewReading, setShowNewReading] = useState(false);
   const [currentVerse, setCurrentVerse] = useState("");
   const [currentVerseTitle, setCurrentVerseTitle] = useState("");
+  const [avatarFile, setAvatarFile] = useState("");
 
   useEffect(() => {
     const fetchUserSettings = async () => {
@@ -174,6 +194,9 @@ const BiblePage = () => {
         return;
       }
       try {
+        const fileName = getAvatarFileName(user);
+        console.log("file name==>", fileName);
+        setAvatarFile(fileName);
         const res = await api.post("/api/chat/session", {
           uid: user?.uid,
           topic: "prayer",
@@ -531,63 +554,93 @@ const BiblePage = () => {
             : "bg-gradient-to-b from-[#1B373E] to-[#101215]"
         }`}
       >
-        {messages.map((msg, idx) =>
-          user?.theme === "light" ? (
-            <div
-              key={idx}
-              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
+        {messages.map((msg, idx) => (
+          <div>
+            {(msg.sender === "ai" || msg.sender === "typing") && idx != 0 && (
+              <div className="flex flex-row justify-content items-center px-4">
+                <div>
+                  <img
+                    src={`/avatars/${avatarFile}`}
+                    className="w-7 h-7 rounded-full object-cover"
+                  />
+                </div>
+                <div
+                  className={`pl-3 font-roboto font-regular text-[13px] ${
+                    user?.theme === "light"
+                      ? "text-[#666666]"
+                      : "text-[#CCCDD1]"
+                  }`}
+                >
+                  {user?.avatar}
+                </div>
+              </div>
+            )}
+            {user?.theme === "light" ? (
+              <div
+                key={idx}
+                className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left text-[#333333]"
                 : "bg-[#D0ECF3] text-[#333333] self-end text-right ml-auto"
             }`}
-            >
-              {msg.sender === "typing"
-                ? typingText
-                : parseBoldItalicText(msg.text)}
+              >
+                {msg.sender === "typing"
+                  ? typingText
+                  : parseBoldItalicText(msg.text)}
 
-              {msg.sender === "ai" && idx !== 0 && (
-                <FeedbackIcons
-                  msg={msg}
-                  handleFeedback={handleFeedback}
-                  userEmail={user?.email}
-                />
-              )}
-            </div>
-          ) : (
-            <div
-              key={idx}
-              className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
+                {msg.sender === "ai" && idx !== 0 && (
+                  <FeedbackIcons
+                    msg={msg}
+                    handleFeedback={handleFeedback}
+                    userEmail={user?.email}
+                  />
+                )}
+              </div>
+            ) : (
+              <div
+                key={idx}
+                className={`w-fit max-w-[80%] px-4 py-3 rounded-xl relative
             ${
               msg.sender === "ai" || msg.sender === "typing"
                 ? "text-left text-white"
                 : "bg-[#976B19] text-white self-end text-right ml-auto"
             }`}
-            >
-              {msg.sender === "typing"
-                ? typingText
-                : parseBoldItalicText(msg.text)}
+              >
+                {msg.sender === "typing"
+                  ? typingText
+                  : parseBoldItalicText(msg.text)}
 
-              {msg.sender === "ai" && idx !== 0 && (
-                <FeedbackIcons
-                  msg={msg}
-                  handleFeedback={handleFeedback}
-                  userEmail={user?.email}
-                />
-              )}
-            </div>
-          )
-        )}
+                {msg.sender === "ai" && idx !== 0 && (
+                  <FeedbackIcons
+                    msg={msg}
+                    handleFeedback={handleFeedback}
+                    userEmail={user?.email}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        ))}
         <div ref={chatEndRef} />
         {showReadings && massReadings && (
           <div className="p-4 space-y-6">
             {/* Date and Liturgical Title */}
             <div className="text-center">
-              <h2 className={`font-roboto font-regular  text-[13px] ${user?.theme==="light" ? "text-[#333333]" : "text-white"}`}>
+              <h2
+                className={`font-roboto font-regular  text-[13px] ${
+                  user?.theme === "light" ? "text-[#333333]" : "text-white"
+                }`}
+              >
                 {massReadings?.date}
               </h2>
-              <h3 className={`text-[17px] font-semibold ${user?.theme==="light" ? "text-[#333333]" : "text-white"}}`}>
-                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))} Week in {massReadings?.season_week} (Year {massReadings?.year})
+              <h3
+                className={`text-[17px] font-semibold ${
+                  user?.theme === "light" ? "text-[#333333]" : "text-white"
+                }}`}
+              >
+                {toWordsOrdinal(parseInt(massReadings?.season_week ?? "0"))}
+                Week in {massReadings?.season_week} (Year {massReadings?.year})
               </h3>
             </div>
 
@@ -595,7 +648,11 @@ const BiblePage = () => {
             {/* <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4"> */}
             <div className="flex flex-wrap justify-center gap-3 ">
               <button
-                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${
+                  user?.theme === "light"
+                    ? "bg-[#FAFAFA] text-[#333333]"
+                    : "bg-[#282828] text-white"
+                }`}
                 onClick={() =>
                   handleScriptureClick(
                     "First Reading",
@@ -612,7 +669,11 @@ const BiblePage = () => {
               </button>
               {massReadings?.readings.second && (
                 <button
-                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
+                  className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${
+                    user?.theme === "light"
+                      ? "bg-[#FAFAFA] text-[#333333]"
+                      : "bg-[#282828] text-white"
+                  }`}
                   onClick={() =>
                     handleScriptureClick(
                       "Second Reading",
@@ -630,7 +691,11 @@ const BiblePage = () => {
               )}
 
               <button
-                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${
+                  user?.theme === "light"
+                    ? "bg-[#FAFAFA] text-[#333333]"
+                    : "bg-[#282828] text-white"
+                }`}
                 onClick={() =>
                   handleScriptureClick(
                     "Responsorial Psalm",
@@ -647,7 +712,11 @@ const BiblePage = () => {
               </button>
 
               <button
-                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${
+                  user?.theme === "light"
+                    ? "bg-[#FAFAFA] text-[#333333]"
+                    : "bg-[#282828] text-white"
+                }`}
                 onClick={() =>
                   handleScriptureClick(
                     "Gospel Reading",
@@ -664,7 +733,11 @@ const BiblePage = () => {
               </button>
 
               <button
-                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${user?.theme === "light" ? "bg-[#FAFAFA] text-[#333333]" : "bg-[#282828] text-white"}`}
+                className={`w-full lg:w-1/2  dark:border-gray-700 rounded-[8px] p-4 shadow hover:shadow-lg transition ${
+                  user?.theme === "light"
+                    ? "bg-[#FAFAFA] text-[#333333]"
+                    : "bg-[#282828] text-white"
+                }`}
                 onClick={() =>
                   handleSaintClick(
                     "Saint of the Day ",
@@ -684,7 +757,11 @@ const BiblePage = () => {
         )}
       </div>
 
-      <footer className={`p-4 ${user?.theme === "light" ? "bg-[#FDFEFE]" : "bg-[#101215]"}`}>
+      <footer
+        className={`p-4 ${
+          user?.theme === "light" ? "bg-[#FDFEFE]" : "bg-[#101215]"
+        }`}
+      >
         <div className="flex flex-wrap justify-center gap-2">
           {showButtons && (
             <>
@@ -693,7 +770,11 @@ const BiblePage = () => {
                   onClick={() => {
                     handleNewReading();
                   }}
-                  className={`w-full lg:w-1/2 font-roboto font-medium text-[15px]  px-4 py-2 rounded-xl ${user?.theme=== "light" ? "bg-[#333333] text-white" : "bg-white text-[#333333]"}`}
+                  className={`w-full lg:w-1/2 font-roboto font-medium text-[15px]  px-4 py-2 rounded-xl ${
+                    user?.theme === "light"
+                      ? "bg-[#333333] text-white"
+                      : "bg-white text-[#333333]"
+                  }`}
                 >
                   Study This Reading
                 </button>
@@ -704,7 +785,11 @@ const BiblePage = () => {
                     startNewSession(welcomeMessage);
                     setShowButtons(false);
                   }}
-                  className={`w-full lg:w-1/2 font-roboto font-medium text-[15px]  px-4 py-2 rounded-xl ${user?.theme=== "light" ? "bg-[#F3F3F3] text-[#333333]" : "bg-[#333333] text-white"}`}
+                  className={`w-full lg:w-1/2 font-roboto font-medium text-[15px]  px-4 py-2 rounded-xl ${
+                    user?.theme === "light"
+                      ? "bg-[#F3F3F3] text-[#333333]"
+                      : "bg-[#333333] text-white"
+                  }`}
                 >
                   Close
                 </button>
