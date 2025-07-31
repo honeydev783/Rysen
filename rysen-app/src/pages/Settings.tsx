@@ -464,9 +464,10 @@ export default function SettingsPage({
                         </div>
                         <button
                           key={item.key}
-                          onClick={() =>
-                            setFormData({ ...formData, avatar: item.key })
-                          }
+                          onClick={() => {
+                            setFormData({ ...formData, avatar: item.key });
+                            setUser({ ...user, avatar: item.key });
+                          }}
                           className={`p-3 text-center transition ${
                             formData.avatar === item.key
                               ? "bg-[#FDEBEA]"
@@ -490,9 +491,10 @@ export default function SettingsPage({
                         </div>
                         <button
                           key={item.key}
-                          onClick={() =>
-                            setFormData({ ...formData, avatar: item.key })
-                          }
+                          onClick={() => {
+                            setFormData({ ...formData, avatar: item.key });
+                            setUser({...user, avatar:item.key});
+                          }}
                           className={`p-3 text-center transition ${
                             formData.avatar === item.key
                               ? "bg-[#A55D51]"

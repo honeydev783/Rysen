@@ -143,7 +143,7 @@ async def fetch_daily_data(db: AsyncSession = Depends(get_db)):
 
         except Exception as e:
             raise RuntimeError(f"Failed to fetch Mass readings: {e}")
-        saint_name = fetch_todays_saint()
+        saint_name = fetch_todays_saint(url_str)
         # Scrape data
         # Parse your data
         today_str1 = today.strftime("%Y/%m/%d")
@@ -182,22 +182,20 @@ async def fetch_daily_data(db: AsyncSession = Depends(get_db)):
         # await FastAPICache.set(key, data, expire=60 * 60 * 48)  # Cache for 24 hours
 
 
-def fetch_todays_saint():
-    url = "https://www.catholic.org/saints/sofd.php"
-    base_url = "https://www.catholic.org"
-
+def fetch_todays_saint(url_str):
+    url = f"https://universalis.com/{url_str}/today.htm"
     response = requests.get(url, timeout=10)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
-    container = soup.find("div", id="saintsSofd")
-    if not container:
-        raise RuntimeError("Saint of the Day section not found")
-
-    # Extract name
-    name_tag = container.find("h3")
-    saint_name = name_tag.get_text(strip=True) if name_tag else None
-    return saint_name
+    feast_span = soup.find("span", id="feastname")
+    if feast_span:
+        saint_text = feast_span.get_text(strip=True)
+        print("Today's Saint:", saint_text)
+        return saint_text
+    else:
+        return ""
+    
 
 
 def get_first_sunday_of_advent(year):
