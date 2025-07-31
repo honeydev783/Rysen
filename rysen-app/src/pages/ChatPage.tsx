@@ -38,6 +38,74 @@ interface ChatSession {
   messages: Message[];
   created_at: string;
 }
+interface WelcomeMessages {
+  [avatar: string]: string[];
+}
+
+interface placeHolders {
+  [avatar: string]: string[];
+}
+
+const welcomeMessages: WelcomeMessages = {
+  Pio: [
+    "Hello and welcome. This space is here if you want to share or explore what’s on your heart or mind.",
+    "Greetings. Feel free to share whatever is weighing on you or any questions you have.",
+    "Welcome. You’re invited to reflect or seek clarity on what matters most to you.",
+  ],
+  Thérèse: [
+    "Hello and welcome. This is a gentle place to share what’s on your heart, big or small.",
+    "Greetings. You can use this space to express whatever you’re thinking or feeling.",
+    "Welcome. Feel free to speak openly here about anything you want to explore or understand better.",
+  ],
+  Kim: [
+    "Hello and welcome! This is a space to talk through what’s on your mind or life.",
+    "Hi there! Use this space to share your thoughts or questions whenever you need.",
+    "Greetings! Glad you’re here. Feel free to explore what’s important to you today.",
+  ],
+  Dan: [
+    "Hello and welcome. This is a space to share your thoughts or questions about everyday life.",
+    "Greetings. Use this space whenever you want to reflect on what’s happening or seek some clarity.",
+    "Welcome. You’re invited to share here whatever you need to think through or understand better.",
+  ],
+};
+
+const placeHolders: placeHolders = {
+  Pio: [
+    "What’s on your heart today?",
+    "What would you like to talk about?",
+    "What’s been on your mind lately?",
+  ],
+  Thérèse: [
+    "What’s quietly resting on your heart?",
+    "What would you like to share today?",
+    "What’s been on your mind or heart?",
+  ],
+  Kim: [
+    "What’s been on your mind lately?",
+    "What’s on your mind right now?",
+    "What’s something you want to discuss?",
+  ],
+  Dan: [
+    "What’s on your mind today?",
+    "What’s been on your mind lately?",
+    "What would you like to talk about?",
+  ],
+};
+
+const getRandomWelcomeMessage = (avatarType: string) => {
+  const messages = welcomeMessages[avatarType];
+  const index = Math.floor(Math.random() * messages.length);
+  console.log("randome number1===>", index);
+  return messages[index];
+};
+
+const getRamdomPlaceholder = (avatarType: string) => {
+  const holders = placeHolders[avatarType];
+  const index = Math.floor(Math.random() * holders.length);
+  console.log("randome number2===>", index);
+
+  return holders[index];
+};
 // const parseBoldItalicText = (text: string) => {
 //   const parts = text.split(/(\*\*[\s\S]*?\*\*)/g); // [\s\S] matches everything including newlines
 
@@ -65,7 +133,9 @@ const parseBoldItalicText = (text: string) => {
   return parts.map((part, i) => {
     // Match **bold** or *bold*
     if (/^\*\*[\s\S]*\*\*$/.test(part) || /^\*[\s\S]*\*$/.test(part)) {
-      const content = part.startsWith('**') ? part.slice(2, -2) : part.slice(1, -1);
+      const content = part.startsWith("**")
+        ? part.slice(2, -2)
+        : part.slice(1, -1);
       return (
         <span key={i} className="font-bold italic whitespace-pre-line block">
           {content}
@@ -127,6 +197,11 @@ const ChatPage = () => {
     spiritual_goals: [] as string[],
     avatar: "",
   });
+  const [welcomeMessage, setWelcomeMsg] = useState(null);
+  const [enable, setEnable] = useState(false);
+  const [placeholder, setPlaceholder] = useState(
+    "What would you like to talk about?"
+  );
   useEffect(() => {
     const fetchUserSettings = async () => {
       const auth = getAuth();
@@ -140,6 +215,7 @@ const ChatPage = () => {
       if (snap.exists()) {
         setUserProfile({ ...userProfile, ...snap.data() });
       }
+      setEnable(true);
     };
 
     fetchUserSettings();
@@ -210,9 +286,14 @@ const ChatPage = () => {
 
   const startNewSession = async () => {
     setMessage("");
+    const msg = getRandomWelcomeMessage(user.avatar);
+    console.log("welcomemessage===>", msg);
+    setWelcomeMsg(msg);
+    const plasceholder = getRamdomPlaceholder(user.avatar);
+    setPlaceholder(plasceholder);
     const welcomeMsg: Message = {
       sender: "ai",
-      text: "Welcome to RYSEN, your spiritual companion. How may I accompany you today?",
+      text: msg,
     };
     try {
       const res = await api.post("/api/chat/session", {
@@ -435,7 +516,7 @@ const ChatPage = () => {
       >
         {messages.map((msg, idx) => (
           <div>
-            {(msg.sender === "ai" || msg.sender === "typing") && idx!= 0 && (
+            {(msg.sender === "ai" || msg.sender === "typing") && idx != 0 && (
               <div className="flex flex-row justify-content items-center px-4">
                 <div>
                   <img
@@ -443,7 +524,13 @@ const ChatPage = () => {
                     className="w-7 h-7 rounded-full object-cover"
                   />
                 </div>
-                <div className={`pl-3 font-roboto font-regular text-[13px] ${user?.theme === "light" ? "text-[#666666]" : "text-[#CCCDD1]"}`}>
+                <div
+                  className={`pl-3 font-roboto font-regular text-[13px] ${
+                    user?.theme === "light"
+                      ? "text-[#666666]"
+                      : "text-[#CCCDD1]"
+                  }`}
+                >
                   {user?.avatar}
                 </div>
               </div>
@@ -530,7 +617,7 @@ const ChatPage = () => {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="How may I accompany you today?"
+            placeholder={placeholder}
             className={`w-full flex-1 rounded-xl px-4 py-2  focus:outline-none ${
               user?.theme === "light" ? "bg-[#FAFAFA]" : "bg-[#333333]"
             }`}
