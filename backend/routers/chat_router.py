@@ -1103,11 +1103,12 @@ async def send_message(
     - Every reflection should feel like a spiritual retreat: rich, extended, rooted in faith.
 
     ---
-    **User's Question:**  
+    **User's Input:**  
     #     {payload.text}
     #     **Previous Answer:**
     #     {last_answers}
     **Strictly follow this structure. Generate only the final reflection text, in natural English, no headings, exactly as described.**
+    **must not include greeting and welcome sentences if user's input is not greeting words like "hi", "hello" or so**
     Your response must be in valid JSON, like this:
 
         '{{
