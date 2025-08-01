@@ -196,6 +196,7 @@ const ChatPage = () => {
     spiritual_maturity: "",
     spiritual_goals: [] as string[],
     avatar: "",
+    responseStyle: ""
   });
   const [welcomeMessage, setWelcomeMsg] = useState(null);
   const [enable, setEnable] = useState(false);

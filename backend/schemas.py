@@ -10,7 +10,7 @@ class UserProfile(BaseModel):
     spiritual_maturity: str
     spiritual_goals: List[str]
     avatar: str
-    
+    responseStyle: Optional[str]
     
 class MessageOut(BaseModel):
     id: UUID
