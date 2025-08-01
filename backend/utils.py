@@ -188,15 +188,20 @@ def fetch_todays_saint(url_str):
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
-    feast_span = soup.find("span", id="feastname")
-    if feast_span:
-        saint_text = feast_span.get_text(strip=True)
-        print("Today's Saint:", saint_text)
-        return saint_text
+    inner_div = soup.find("div", id="innertexst")
+    if inner_div:
+            first_h4 = inner_div.find("h4")
+            if first_h4:
+                print("text:", first_h4.get_text(strip=True))
+                saint_text = first_h4.get_text(strip=True)
+                return saint_text
+            else:
+                print("No <h4> tag found in #innertexst")
+                return ""
     else:
+        print("No #innertexst div found")
         return ""
     
-
 
 def get_first_sunday_of_advent(year):
     # Advent starts on the 4th Sunday before Christmas

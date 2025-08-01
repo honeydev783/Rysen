@@ -546,7 +546,7 @@ async def generate_scripture_reading_api(
             3. A one-sentence overview briefly summarizing what the passage contains.
             4. The full text of the passage, formatted so that:
                 - Each verse starts with Verse number in parentheses and verse text.
-                - Verse number and Verse text itself is in **(verse number) verse text** (use actual font styling, not markdown asterisks).
+                - Verse number and Verse text itself must be involved together in ** **.  e.g.**(verse number) verse text**.
             - Do NOT include commentary, footnotes, headings, or cross-references.
             - Keep formatting faithful to the translation’s style.
 
